@@ -8,8 +8,12 @@ import Data.Lens (Iso')
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Newtype (class Newtype)
 import Foreign (readString, unsafeToForeign)
+import Foreign.JSON (parseJSON)
 import Foreign.Class (class Decode, class Encode)
 import Global.Unsafe (unsafeStringify)
+import Control.Monad.Except (lift, runExceptT)
+import Data.Either
+import Data.Identity
 
 newtype RawJson
   = RawJson String
@@ -32,7 +36,9 @@ instance showRawJson :: Show RawJson where
   show = genericShow
 
 instance encodeRawJson :: Encode RawJson where
-  encode (RawJson string) = unsafeToForeign string
+  encode (RawJson string) = case runExceptT (parseJSON string) of -- TODO: remove this workaround to avoid making changes to the psgenerator
+    Identity (Right x) -> x
+    Identity (Left _) -> unsafeToForeign string
 
 instance decodeRawJson :: Decode RawJson where
   decode value = RawJson <$> (readString value <|> pure (unsafeStringify value))
