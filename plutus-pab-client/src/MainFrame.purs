@@ -17,6 +17,7 @@ import Control.Monad.Reader (runReaderT)
 import Control.Monad.State (class MonadState)
 import Control.Monad.State.Extra (zoomStateT)
 import Data.Array (filter, find)
+import Data.BigInteger as BigInteger
 import Data.Either (Either(..))
 import Data.Lens (Lens', _1, _2, assign, modifying, to, use, view, preview)
 import Data.Lens.At (at)
@@ -46,7 +47,7 @@ import Playground.Types (FunctionSchema(..), _FunctionSchema)
 import Plutus.Contract.Effects (ActiveEndpoint)
 import Plutus.PAB.Events.ContractInstanceState (PartiallyDecodedResponse)
 import Plutus.PAB.Webserver (SPParams_(..))
-import Plutus.PAB.Webserver.Types (ContractInstanceClientState(..), ContractSignatureResponse(..), CombinedWSStreamToClient, CombinedWSStreamToServer(..))
+import Plutus.PAB.Webserver.Types (ContractInstanceClientState(..), ContractSignatureResponse(..), CombinedWSStreamToClient, ContractActivationArgs(..))
 import Plutus.V1.Ledger.Ada (Ada(..))
 import Plutus.V1.Ledger.Value (Value)
 import Prim.TypeError (class Warn, Text)
@@ -57,6 +58,7 @@ import Servant.PureScript.Settings (SPSettings_, defaultSettings)
 import Types (HAction(..), Output, Query(..), State(..), StreamError(..), View(..), WebSocketStatus(..), ContractSignatures(..), EndpointForm, WebStreamData, _webSocketMessage, _webSocketStatus, toPropertyKey, _annotatedBlockchain, _chainReport, _chainState, _contractActiveEndpoints, _contractSignatures, _contractStates, _currentView, _csContract, _csCurrentState, fromWebData)
 import Validation (_argument)
 import View as View
+import Wallet.Emulator.Wallet (Wallet (..))
 import Wallet.Types (EndpointDescription)
 import WebSocket.Support (FromSocket)
 import WebSocket.Support as WS
@@ -162,7 +164,8 @@ handleAction (ChangeView view) = do
 
 handleAction (ActivateContract contract) = do
   modifying _contractSignatures Stream.refreshing
-  contractInstanceId <- activateContract contract
+  let defWallet = Wallet { getWallet: BigInteger.fromInt 1 }
+  contractInstanceId <- activateContract $ ContractActivationArgs { caID: contract, caWallet: defWallet }
   for_ (preview RemoteData._Success contractInstanceId)
     $ \cid -> do
         clientState <- map fromWebData $ getContractInstanceStatus cid

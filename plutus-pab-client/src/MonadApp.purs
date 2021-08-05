@@ -19,7 +19,7 @@ import Halogen (HalogenM, liftEffect, raise)
 import Network.RemoteData as RemoteData
 import Playground.Lenses (_getEndpointDescription)
 import Plutus.PAB.Webserver (SPParams_, getApiContractInstanceByContractinstanceidSchema, getApiFullreport, getApiContractInstances, getApiContractDefinitions, postApiContractActivate, postApiContractInstanceByContractinstanceidEndpointByEndpointname, getApiContractInstanceByContractinstanceidStatus)
-import Plutus.PAB.Webserver.Types (ContractInstanceClientState, ContractSignatureResponse, FullReport, CombinedWSStreamToServer)
+import Plutus.PAB.Webserver.Types (ContractInstanceClientState, ContractSignatureResponse, FullReport, CombinedWSStreamToServer, ContractActivationArgs)
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
 import Wallet.Types (EndpointDescription, ContractInstanceId)
@@ -32,7 +32,7 @@ class
   getContractInstanceClientState :: m (WebData (Array (ContractInstanceClientState ExampleContracts)))
   getContractDefinitions :: m (WebData (Array (ContractSignatureResponse ExampleContracts)))
   invokeEndpoint :: RawJson -> ContractInstanceId -> EndpointDescription -> m (WebData Unit)
-  activateContract :: ExampleContracts -> m (WebData ContractInstanceId) -- activateContract :: ContractActivationArgs ExampleContracts -> m Unit
+  activateContract :: ContractActivationArgs ExampleContracts -> m (WebData ContractInstanceId)
   sendWebSocketMessage :: CombinedWSStreamToServer -> m Unit
   log :: String -> m Unit
 
