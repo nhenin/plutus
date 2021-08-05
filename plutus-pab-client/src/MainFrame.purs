@@ -58,7 +58,7 @@ import Servant.PureScript.Settings (SPSettings_, defaultSettings)
 import Types (HAction(..), Output, Query(..), State(..), StreamError(..), View(..), WebSocketStatus(..), ContractSignatures(..), EndpointForm, WebStreamData, _webSocketMessage, _webSocketStatus, toPropertyKey, _annotatedBlockchain, _chainReport, _chainState, _contractActiveEndpoints, _contractSignatures, _contractStates, _currentView, _csContract, _csCurrentState, fromWebData)
 import Validation (_argument)
 import View as View
-import Wallet.Emulator.Wallet (Wallet (..))
+import Wallet.Emulator.Wallet (Wallet(..))
 import Wallet.Types (EndpointDescription)
 import WebSocket.Support (FromSocket)
 import WebSocket.Support as WS
@@ -164,7 +164,8 @@ handleAction (ChangeView view) = do
 
 handleAction (ActivateContract contract) = do
   modifying _contractSignatures Stream.refreshing
-  let defWallet = Wallet { getWallet: BigInteger.fromInt 1 }
+  let
+    defWallet = Wallet { getWallet: BigInteger.fromInt 1 }
   contractInstanceId <- activateContract $ ContractActivationArgs { caID: contract, caWallet: defWallet }
   for_ (preview RemoteData._Success contractInstanceId)
     $ \cid -> do
