@@ -95,13 +95,12 @@ joinStream STMStream{unSTMStream} = STMStream $ unSTMStream >>= go where
 
     go :: (STMStream a, Maybe (STMStream (STMStream a))) -> STM (a, Maybe (STMStream a))
     go (STMStream currentStream, Nothing) = currentStream
-    go (STMStream currentStream, Just (STMStream nextStream)) = do
+    go (STMStream currentStream, Just ns@(STMStream nextStream)) = do
         vl <- fmap Left currentStream <|> fmap Right nextStream
         case vl of
-            Left (a, Just currentStream') -> pure (a, Just $ STMStream $ go (currentStream', Just (STMStream nextStream)))
-            Left (a, Nothing) -> pure (a, Just $ joinStream $ STMStream nextStream)
-            Right (newStream, Just nextStream') -> go (newStream, Just nextStream')
-            Right (newStream, Nothing) -> go (newStream, Nothing)
+            Left (a, Just currentStream') -> pure (a, Just $ STMStream $ go (currentStream', Just ns))
+            Left (a, Nothing)             -> pure (a, Just $ joinStream ns)
+            Right ns'                     -> go ns'
 
 singleton :: STM a -> STMStream a
 singleton = STMStream . fmap (, Nothing)
@@ -196,14 +195,13 @@ walletFundsChange wallet blockchainEnv =
 
 observableStateChange :: ContractInstanceId -> InstancesState -> STMStream JSON.Value
 observableStateChange contractInstanceId instancesState =
-    unfold (Instances.obervableContractState contractInstanceId instancesState)
+    unfold (Instances.observableContractState contractInstanceId instancesState)
 
 openEndpoints :: ContractInstanceId -> InstancesState -> STMStream [ActiveEndpoint]
-openEndpoints contractInstanceId instancesState = STMStream $ do
-    instanceState <- Instances.instanceState contractInstanceId instancesState
-    let tx = fmap (oepName . snd) . Map.toList <$> Instances.openEndpoints instanceState
-    initial <- tx
-    pure (initial, Just (unfold tx))
+openEndpoints contractInstanceId instancesState = do
+    unfold $ do
+      instanceState <- Instances.instanceState contractInstanceId instancesState
+      fmap (oepName . snd) . Map.toList <$> Instances.openEndpoints instanceState
 
 finalValue :: ContractInstanceId -> InstancesState -> STMStream (Maybe JSON.Value)
 finalValue contractInstanceId instancesState =
