@@ -98,7 +98,7 @@ machineClient ::
     -> StateMachineClient IDState IDAction
 machineClient inst credentialData =
     let machine = credentialStateMachine credentialData
-    in StateMachine.mkStateMachineClient (StateMachine.StateMachineInstance machine inst)
+    in StateMachine.mkStateMachineClientOld (StateMachine.StateMachineInstance machine inst)
 
 mkMachineClient :: CredentialAuthority -> PubKeyHash -> TokenName -> StateMachineClient IDState IDAction
 mkMachineClient authority credentialOwner tokenName =

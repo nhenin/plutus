@@ -94,9 +94,12 @@ module Plutus.Contract.Test.ContractModel
     , ContractInstanceSpec(..)
     , HandleFun
     -- ** Emulator properties
-    , propRunActions_
-    , propRunActions
-    , propRunActionsWithOptions
+    , propRunActionsOld_
+    , propRunActionsV2_
+    , propRunActionsOld
+    , propRunActionsV2
+    , propRunActionsWithOptionsOld
+    , propRunActionsWithOptionsV2
     -- ** DL properties
     , forAllDL
     -- ** Test cases
@@ -499,7 +502,7 @@ runEmulator :: (Handles state -> EmulatorTrace ()) -> ContractMonad state ()
 runEmulator a = State.modify (<> EmulatorAction (\ h -> h <$ a h))
 
 setHandles :: EmulatorTrace (Handles state) -> ContractMonad state ()
-setHandles a = State.modify (<> EmulatorAction (\ _ -> a))
+setHandles a = State.modify (<> EmulatorAction (const a))
 
 instance ContractModel state => Show (StateModel.Action (ModelState state) a) where
     showsPrec p (ContractAction a) = showsPrec p a
@@ -563,7 +566,7 @@ instance ContractModel state => Show (Actions state) where
   showsPrec d (Actions as)
     | d>10      = ("("++).showsPrec 0 (Actions as).(")"++)
     | null as   = ("Actions []"++)
-    | otherwise = (("Actions \n [")++) .
+    | otherwise = ("Actions \n [" ++) .
                   foldr (.) (showsPrec 0 (last as) . ("]"++))
                     [showsPrec 0 a . (",\n  "++) | a <- init as]
 
@@ -919,11 +922,25 @@ instance GetModelState (DL state) where
 -- actions using `arbitraryAction`, or you can use `forAllDL` to generate a `Actions` from a `DL`
 -- scenario.
 
-finalChecks :: CheckOptions -> TracePredicate -> PropertyM (ContractMonad state) a -> PropertyM (ContractMonad state) a
-finalChecks opts predicate prop = do
+-- | TODO: To delete. Uses the old chain index.
+finalChecksOld :: CheckOptions -> TracePredicate -> PropertyM (ContractMonad state) a -> PropertyM (ContractMonad state) a
+finalChecksOld opts predicate prop = do
     x  <- prop
     tr <- QC.run State.get
-    x <$ checkPredicateInner opts predicate (void $ runEmulatorAction tr IMNil)
+    x <$ checkPredicateInnerOld opts predicate (void $ runEmulatorAction tr IMNil)
+                             debugOutput assertResult
+    where
+        debugOutput :: Monad m => String -> PropertyM m ()
+        debugOutput = QC.monitor . whenFail . putStrLn
+
+        assertResult :: Monad m => Bool -> PropertyM m ()
+        assertResult = QC.assert
+
+finalChecksV2 :: CheckOptions -> TracePredicate -> PropertyM (ContractMonad state) a -> PropertyM (ContractMonad state) a
+finalChecksV2 opts predicate prop = do
+    x  <- prop
+    tr <- QC.run State.get
+    x <$ checkPredicateInnerV2 opts predicate (void $ runEmulatorAction tr IMNil)
                              debugOutput assertResult
     where
         debugOutput :: Monad m => String -> PropertyM m ()
@@ -939,19 +956,37 @@ activateWallets (ContractInstanceSpec key wallet contract : spec) = do
     m <- activateWallets spec
     return $ IMCons key h m
 
+-- | TODO: To delete. Uses the old chain index.
+propRunActionsOld_ ::
+    ContractModel state
+    => [ContractInstanceSpec state] -- ^ Required wallet contract instances
+    -> Actions state                 -- ^ The actions to run
+    -> Property
+propRunActionsOld_ handleSpecs actions =
+    propRunActionsOld handleSpecs (\ _ -> pure True) actions
+
 -- | Run a `Actions` in the emulator and check that the model and the emulator agree on the final
 --   wallet balance changes. Equivalent to
 --
 -- @
 -- propRunActions_ hs actions = `propRunActions` hs (`const` `$` `pure` `True`) actions
 -- @
-propRunActions_ ::
+propRunActionsV2_ ::
     ContractModel state
     => [ContractInstanceSpec state] -- ^ Required wallet contract instances
     -> Actions state                 -- ^ The actions to run
     -> Property
-propRunActions_ handleSpecs actions =
-    propRunActions handleSpecs (\ _ -> pure True) actions
+propRunActionsV2_ handleSpecs actions =
+    propRunActionsV2 handleSpecs (\ _ -> pure True) actions
+
+-- | TODO: To delete. Uses the old chain index.
+propRunActionsOld ::
+    ContractModel state
+    => [ContractInstanceSpec state]         -- ^ Required wallet contract instances
+    -> (ModelState state -> TracePredicate) -- ^ Predicate to check at the end
+    -> Actions state                         -- ^ The actions to run
+    -> Property
+propRunActionsOld = propRunActionsWithOptionsOld defaultCheckOptions
 
 -- | Run a `Actions` in the emulator and check that the model and the emulator agree on the final
 --   wallet balance changes, and that the given `TracePredicate` holds at the end. Equivalent to:
@@ -959,13 +994,32 @@ propRunActions_ handleSpecs actions =
 -- @
 -- propRunActions = `propRunActionsWithOptions` `defaultCheckOptions`
 -- @
-propRunActions ::
+propRunActionsV2 ::
     ContractModel state
     => [ContractInstanceSpec state]         -- ^ Required wallet contract instances
     -> (ModelState state -> TracePredicate) -- ^ Predicate to check at the end
     -> Actions state                         -- ^ The actions to run
     -> Property
-propRunActions = propRunActionsWithOptions defaultCheckOptions
+propRunActionsV2 = propRunActionsWithOptionsV2 defaultCheckOptions
+
+-- | TODO: To delete. Uses the old chain index.
+propRunActionsWithOptionsOld ::
+    ContractModel state
+    => CheckOptions                          -- ^ Emulator options
+    -> [ContractInstanceSpec state]          -- ^ Required wallet contract instances
+    -> (ModelState state -> TracePredicate)  -- ^ Predicate to check at the end
+    -> Actions state                          -- ^ The actions to run
+    -> Property
+propRunActionsWithOptionsOld opts handleSpecs predicate actions' =
+    monadic (flip State.evalState mempty) $ finalChecksOld opts finalPredicate $ do
+        QC.run $ setHandles $ activateWallets handleSpecs
+        let initState = StateModel.initialState { _lastSlot = opts ^. maxSlot }
+        void $ runActionsInState initState actions
+    where
+        finalState     = stateAfter actions
+        finalPredicate = predicate finalState .&&. checkBalances finalState
+                                              .&&. checkNoCrashes handleSpecs
+        actions = toStateModelActions actions'
 
 -- | Run a `Actions` in the emulator and check that the model and the emulator agree on the final
 --   wallet balance changes, that no off-chain contract instance crashed, and that the given
@@ -996,15 +1050,15 @@ propRunActions = propRunActionsWithOptions defaultCheckOptions
 --                         `&` `minLogLevel`                        `.~` logLevel
 -- @
 --
-propRunActionsWithOptions ::
+propRunActionsWithOptionsV2 ::
     ContractModel state
     => CheckOptions                          -- ^ Emulator options
     -> [ContractInstanceSpec state]          -- ^ Required wallet contract instances
     -> (ModelState state -> TracePredicate)  -- ^ Predicate to check at the end
     -> Actions state                          -- ^ The actions to run
     -> Property
-propRunActionsWithOptions opts handleSpecs predicate actions' =
-    monadic (flip State.evalState mempty) $ finalChecks opts finalPredicate $ do
+propRunActionsWithOptionsV2 opts handleSpecs predicate actions' =
+    monadic (flip State.evalState mempty) $ finalChecksV2 opts finalPredicate $ do
         QC.run $ setHandles $ activateWallets handleSpecs
         let initState = StateModel.initialState { _lastSlot = opts ^. maxSlot }
         void $ runActionsInState initState actions

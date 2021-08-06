@@ -172,6 +172,7 @@ Balances Carried Forward:
 
   Script: d89cdcfe5f3223851d2bdf42bba7ad5ecd280444f6459ba955965c1f
   Value:
+<<<<<<< HEAD
     Ada:      Lovelace:  60
 
 ==== Slot #2, Tx #0 ====
@@ -256,3 +257,6 @@ Balances Carried Forward:
   Script: d89cdcfe5f3223851d2bdf42bba7ad5ecd280444f6459ba955965c1f
   Value:
     Ada:      Lovelace:  50
+=======
+    Ada:      Lovelace:  60
+>>>>>>> 0f23aa067 (SCP-2566: Use new chain index effects everywhere in emulator, plutus-use-cases and plutus-pab.)

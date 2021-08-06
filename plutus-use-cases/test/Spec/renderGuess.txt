@@ -101,11 +101,19 @@ Balances Carried Forward:
     Ada:      Lovelace:  100000000
 
 ==== Slot #1, Tx #0 ====
+<<<<<<< HEAD
 TxId:       e23e115853c2150f95e3bfdbe48344fa0560b45e7d1e33a4a208622e3ad643d8
 Fee:        Ada:      Lovelace:  10
 Mint:       -
 Signatures  PubKey: d75a980182b10ab7d54bfed3c964073a0ee172f3...
               Signature: 5840f13a334a41c4240ef2ee45d81cf27c5b09c3...
+=======
+TxId:       2bc38967a040c36d4fdbdc4d4216f86f2f07342e2e07270e456c3238e00902a9
+Fee:        Ada:      Lovelace:  10
+Mint:       -
+Signatures  PubKey: d75a980182b10ab7d54bfed3c964073a0ee172f3...
+              Signature: 5840fd485a320d6098e015cab1531eee6af4c271...
+>>>>>>> 0f23aa067 (SCP-2566: Use new chain index effects everywhere in emulator, plutus-use-cases and plutus-pab.)
 Inputs:
   ---- Input 0 ----
   Destination:  PubKeyHash: 35dedd2982a03cf39e7dce03c839994ffdec2ec6... (Wallet 1)
@@ -124,7 +132,11 @@ Outputs:
     Ada:      Lovelace:  99999982
 
   ---- Output 1 ----
+<<<<<<< HEAD
   Destination:  Script: f31d4725f37e6dc02c494c3f565c4a61827a4261068e7e0618f7ab69
+=======
+  Destination:  Script: 6364ec69c848e5b71b14f95ee37f85f5ad75f8be5571bcab16ac497b
+>>>>>>> 0f23aa067 (SCP-2566: Use new chain index effects everywhere in emulator, plutus-use-cases and plutus-pab.)
   Value:
     Ada:      Lovelace:  8
 
@@ -170,6 +182,7 @@ Balances Carried Forward:
   Value:
     Ada:      Lovelace:  100000000
 
+<<<<<<< HEAD
   Script: f31d4725f37e6dc02c494c3f565c4a61827a4261068e7e0618f7ab69
   Value:
     Ada:      Lovelace:  8
@@ -453,3 +466,8 @@ Balances Carried Forward:
   Script: f31d4725f37e6dc02c494c3f565c4a61827a4261068e7e0618f7ab69
   Value:
     Ada:      Lovelace:  5
+=======
+  Script: 6364ec69c848e5b71b14f95ee37f85f5ad75f8be5571bcab16ac497b
+  Value:
+    Ada:      Lovelace:  8
+>>>>>>> 0f23aa067 (SCP-2566: Use new chain index effects everywhere in emulator, plutus-use-cases and plutus-pab.)

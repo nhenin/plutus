@@ -60,14 +60,20 @@ module Plutus.Trace.Emulator(
     , initialChainState
     , slotConfig
     , feeConfig
-    , runEmulatorStream
+    , runEmulatorStreamOld
+    , runEmulatorStreamV2
     , TraceConfig(..)
-    , runEmulatorTrace
+    , runEmulatorTraceOld
+    , runEmulatorTraceV2
     , PrintEffect(..)
-    , runEmulatorTraceEff
-    , runEmulatorTraceIO
-    , runEmulatorTraceIO'
+    , runEmulatorTraceEffOld
+    , runEmulatorTraceEffV2
+    , runEmulatorTraceIOOld
+    , runEmulatorTraceIOV2
+    , runEmulatorTraceIOOld'
+    , runEmulatorTraceIOV2'
     -- * Interpreter
+    , interpretEmulatorTraceOld
     , interpretEmulatorTrace
     ) where
 
@@ -96,7 +102,7 @@ import           Wallet.Emulator.MultiAgent              (EmulatorEvent, Emulato
                                                           _eteEvent, schedulerEvent)
 import           Wallet.Emulator.Stream                  (EmulatorConfig (..), EmulatorErr (..), feeConfig,
                                                           foldEmulatorStreamM, initialChainState, initialDist,
-                                                          runTraceStream, slotConfig)
+                                                          runTraceStreamOld, runTraceStreamV2, slotConfig)
 import           Wallet.Emulator.Wallet                  (Entity, balances)
 import qualified Wallet.Emulator.Wallet                  as Wallet
 
@@ -109,7 +115,7 @@ import           Plutus.Trace.Effects.RunContract        (RunContract, handleRun
 import qualified Plutus.Trace.Effects.RunContract        as RunContract
 import           Plutus.Trace.Effects.Waiting            (Waiting, handleWaiting)
 import qualified Plutus.Trace.Effects.Waiting            as Waiting
-import           Plutus.Trace.Emulator.System            (launchSystemThreads)
+import           Plutus.Trace.Emulator.System            (launchSystemThreads, launchSystemThreadsOld)
 import           Plutus.Trace.Emulator.Types             (ContractConstraints, ContractHandle (..),
                                                           ContractInstanceLog (..), ContractInstanceMsg (..),
                                                           ContractInstanceTag, Emulator, EmulatorMessage (..),
@@ -168,11 +174,51 @@ handleEmulatorTrace slotCfg action = do
     void $ exit @effs @EmulatorMessage
 
 -- | Run a 'Trace Emulator', streaming the log messages as they arrive
-runEmulatorStream :: forall effs a.
+--
+-- TODO: To delete. Uses the old chain index.
+runEmulatorStreamOld :: forall effs a.
     EmulatorConfig
     -> EmulatorTrace a
     -> Stream (Of (LogMessage EmulatorEvent)) (Eff effs) (Maybe EmulatorErr, EmulatorState)
-runEmulatorStream conf = runTraceStream conf . interpretEmulatorTrace conf
+runEmulatorStreamOld conf = runTraceStreamOld conf . interpretEmulatorTraceOld conf
+
+-- | Run a 'Trace Emulator', streaming the log messages as they arrive
+runEmulatorStreamV2 :: forall effs a.
+    EmulatorConfig
+    -> EmulatorTrace a
+    -> Stream (Of (LogMessage EmulatorEvent)) (Eff effs) (Maybe EmulatorErr, EmulatorState)
+runEmulatorStreamV2 conf = runTraceStreamV2 conf . interpretEmulatorTrace conf
+
+-- | Interpret a 'Trace Emulator' action in the multi agent and emulated
+--   blockchain effects.
+--
+-- TODO: To delete. Uses the old chain index.
+interpretEmulatorTraceOld :: forall effs a.
+    ( Member MultiAgentEffect effs
+    , Member MultiAgentControlEffect effs
+    , Member (Error EmulatorRuntimeError) effs
+    , Member ChainControlEffect effs
+    , Member (LogMsg EmulatorEvent') effs
+    , Member (State EmulatorState) effs
+    )
+    => EmulatorConfig
+    -> EmulatorTrace a
+    -> Eff effs ()
+interpretEmulatorTraceOld conf action =
+    -- add a wait action to the beginning to ensure that the
+    -- initial transaction gets validated before the wallets
+    -- try to spend their funds
+    let action' = Waiting.nextSlot >> action >> Waiting.nextSlot
+        defaultWallets = Wallet.Wallet <$> [1..10]
+        wallets = fromMaybe defaultWallets (preview (initialChainState . _Left . to Map.keys) conf)
+    in
+    evalState @EmulatorThreads mempty
+        $ handleDeterministicIds
+        $ interpret (mapLog (review schedulerEvent))
+        $ runThreads
+        $ do
+            raise $ launchSystemThreadsOld wallets
+            handleEmulatorTrace (_slotConfig conf) action'
 
 -- | Interpret a 'Trace Emulator' action in the multi agent and emulated
 --   blockchain effects.
@@ -232,27 +278,68 @@ defaultShowEvent = \case
 
 -- | Run an emulator trace to completion, returning a tuple of the final state
 -- of the emulator, the events, and any error, if any.
-runEmulatorTrace
+--
+-- TODO: To delete. Uses the old chain index.
+runEmulatorTraceOld
     :: EmulatorConfig
     -> EmulatorTrace ()
     -> ([EmulatorEvent], Maybe EmulatorErr, EmulatorState)
-runEmulatorTrace cfg trace =
+runEmulatorTraceOld cfg trace =
     (\(xs :> (y, z)) -> (xs, y, z))
     $ run
     $ runReader ((initialDist . _initialChainState) cfg)
     $ foldEmulatorStreamM (generalize list)
-    $ runEmulatorStream cfg trace
+    $ runEmulatorStreamOld cfg trace
 
+-- | Run an emulator trace to completion, returning a tuple of the final state
+-- of the emulator, the events, and any error, if any.
+runEmulatorTraceV2
+    :: EmulatorConfig
+    -> EmulatorTrace ()
+    -> ([EmulatorEvent], Maybe EmulatorErr, EmulatorState)
+runEmulatorTraceV2 cfg trace =
+    (\(xs :> (y, z)) -> (xs, y, z))
+    $ run
+    $ runReader ((initialDist . _initialChainState) cfg)
+    $ foldEmulatorStreamM (generalize list)
+    $ runEmulatorStreamV2 cfg trace
 
 -- | Run the emulator trace returning an effect that can be evaluated by
 -- interpreting the 'PrintEffect's.
-runEmulatorTraceEff :: forall effs. Member PrintEffect effs
+--
+-- TODO: To delete. Uses the old chain index.
+runEmulatorTraceEffOld :: forall effs. Member PrintEffect effs
     => TraceConfig
     -> EmulatorConfig
     -> EmulatorTrace ()
     -> Eff effs ()
-runEmulatorTraceEff tcfg cfg trace =
-  let (xs, me, e) = runEmulatorTrace cfg trace
+runEmulatorTraceEffOld tcfg cfg trace =
+  let (xs, me, e) = runEmulatorTraceOld cfg trace
+      balances' = balances (_chainState e) (_walletStates e)
+   in do
+      case me of
+        Nothing  -> return ()
+        Just err -> printLn $ "ERROR: " <> show err
+
+      forM_ xs $ \ete -> do
+        case showEvent tcfg (_eteEvent ete) of
+          Nothing -> return ()
+          Just s  ->
+            let slot = pad 5 (getSlot $ _eteEmulatorTime ete)
+             in printLn $ "Slot " <> slot <> ": " <> s
+
+      printLn "Final balances"
+      printBalances balances'
+
+-- | Run the emulator trace returning an effect that can be evaluated by
+-- interpreting the 'PrintEffect's.
+runEmulatorTraceEffV2 :: forall effs. Member PrintEffect effs
+    => TraceConfig
+    -> EmulatorConfig
+    -> EmulatorTrace ()
+    -> Eff effs ()
+runEmulatorTraceEffV2 tcfg cfg trace =
+  let (xs, me, e) = runEmulatorTraceV2 cfg trace
       balances' = balances (_chainState e) (_walletStates e)
    in do
       case me of
@@ -275,23 +362,51 @@ runEmulatorTraceEff tcfg cfg trace =
 -- Example:
 --
 -- >>> runEmulatorTraceIO (void $ Trace.waitNSlots 1)
-runEmulatorTraceIO
+--
+-- TODO: To delete. Uses the old chain index.
+runEmulatorTraceIOOld
     :: EmulatorTrace ()
     -> IO ()
-runEmulatorTraceIO = runEmulatorTraceIO' def def
+runEmulatorTraceIOOld = runEmulatorTraceIOOld' def def
+
+-- | Runs the trace with 'runEmulatorTrace', with default configuration that
+-- prints a selection of events to stdout.
+--
+-- Example:
+--
+-- >>> runEmulatorTraceIO (void $ Trace.waitNSlots 1)
+runEmulatorTraceIOV2
+    :: EmulatorTrace ()
+    -> IO ()
+runEmulatorTraceIOV2 = runEmulatorTraceIOV2' def def
 
 --- | Runs the trace with a given configuration for the trace and the config.
 --
 -- Example of running a trace and saving the output to a file:
 --
 -- >>> withFile "/tmp/trace-log.txt" WriteMode $ \h -> runEmulatorTraceIO' (def { outputHandle = h }) def (void $ Trace.waitNSlots 1)
-runEmulatorTraceIO'
+--
+-- TODO: To delete. Uses the old chain index.
+runEmulatorTraceIOOld'
     :: TraceConfig
     -> EmulatorConfig
     -> EmulatorTrace ()
     -> IO ()
-runEmulatorTraceIO' tcfg cfg trace
-  = runPrintEffect (outputHandle tcfg) $ runEmulatorTraceEff tcfg cfg trace
+runEmulatorTraceIOOld' tcfg cfg trace
+  = runPrintEffect (outputHandle tcfg) $ runEmulatorTraceEffOld tcfg cfg trace
+
+--- | Runs the trace with a given configuration for the trace and the config.
+--
+-- Example of running a trace and saving the output to a file:
+--
+-- >>> withFile "/tmp/trace-log.txt" WriteMode $ \h -> runEmulatorTraceIO' (def { outputHandle = h }) def (void $ Trace.waitNSlots 1)
+runEmulatorTraceIOV2'
+    :: TraceConfig
+    -> EmulatorConfig
+    -> EmulatorTrace ()
+    -> IO ()
+runEmulatorTraceIOV2' tcfg cfg trace
+  = runPrintEffect (outputHandle tcfg) $ runEmulatorTraceEffV2 tcfg cfg trace
 
 runPrintEffect :: Handle
          -> Eff '[PrintEffect, IO] r

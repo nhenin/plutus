@@ -22,7 +22,7 @@ module Plutus.Contracts.Auction(
     AuctionOutput(..),
     AuctionError(..),
     ThreadToken,
-    SM.getThreadToken
+    SM.getThreadTokenOld
     ) where
 
 import           Control.Lens                     (makeClassyPrisms)
@@ -176,7 +176,7 @@ machineClient
     -> StateMachineClient AuctionState AuctionInput
 machineClient inst threadToken auctionParams =
     let machine = auctionStateMachine (threadToken, auctionParams)
-    in SM.mkStateMachineClient (SM.StateMachineInstance machine inst)
+    in SM.mkStateMachineClientOld (SM.StateMachineInstance machine inst)
 
 type BuyerSchema = Endpoint "bid" Ada
 type SellerSchema = EmptySchema -- Don't need any endpoints: the contract runs automatically until the auction is finished.
@@ -208,7 +208,7 @@ instance SM.AsSMContractError AuctionError where
 -- | Client code for the seller
 auctionSeller :: Value -> POSIXTime -> Contract AuctionOutput SellerSchema AuctionError ()
 auctionSeller value time = do
-    threadToken <- SM.getThreadToken
+    threadToken <- SM.getThreadTokenOld
     tell $ threadTokenOut threadToken
     self <- Ledger.pubKeyHash <$> ownPubKey
     let params       = AuctionParams{apOwner = self, apAsset = value, apEndTime = time }
@@ -217,12 +217,12 @@ auctionSeller value time = do
 
     _ <- handleError
             (\e -> do { logError (AuctionFailed e); throwError (StateMachineContractError e) })
-            (SM.runInitialise client (initialState self) value)
+            (SM.runInitialiseOld client (initialState self) value)
 
     logInfo $ AuctionStarted params
     _ <- awaitTime time
 
-    r <- SM.runStep client Payout
+    r <- SM.runStepOld client Payout
     case r of
         SM.TransitionFailure i            -> logError (TransitionFailed i) -- TODO: Add an endpoint "retry" to the seller?
         SM.TransitionSuccess (Finished h) -> logInfo $ AuctionEnded h
@@ -231,8 +231,8 @@ auctionSeller value time = do
 
 -- | Get the current state of the contract and log it.
 currentState :: StateMachineClient AuctionState AuctionInput -> Contract AuctionOutput BuyerSchema AuctionError (Maybe HighestBid)
-currentState client = mapError StateMachineContractError (SM.getOnChainState client) >>= \case
-    Just (SM.OnChainState{SM.ocsTxOut=TypedScriptTxOut{tyTxOutData=Ongoing s}}, _) -> do
+currentState client = mapError StateMachineContractError (SM.getOnChainStateOld client) >>= \case
+    Just (SM.OnChainStateOld{SM.ocsTxOut=TypedScriptTxOut{tyTxOutData=Ongoing s}}, _) -> do
         tell $ auctionStateOut $ Ongoing s
         pure (Just s)
     _ -> do
@@ -273,7 +273,7 @@ waitForChange slotCfg AuctionParams{apEndTime} client lastHighestBid = do
                            $ Haskell.succ
                            $ TimeSlot.posixTimeToEnclosingSlot slotCfg t
             promiseBind
-                (addressChangeRequest
+                (addressChangeRequestOld
                     AddressChangeRequest
                     { acreqSlotRangeFrom = TimeSlot.posixTimeToEnclosingSlot slotCfg targetTime
                     , acreqSlotRangeTo = TimeSlot.posixTimeToEnclosingSlot slotCfg targetTime
@@ -298,7 +298,7 @@ handleEvent client lastHighestBid change =
             logInfo @Haskell.String "Submitting bid"
             self <- Ledger.pubKeyHash <$> ownPubKey
             logInfo @Haskell.String "Received pubkey"
-            r <- SM.runStep client Bid{newBid = ada, newBidder = self}
+            r <- SM.runStepOld client Bid{newBid = ada, newBidder = self}
             logInfo @Haskell.String "SM: runStep done"
             case r of
                 SM.TransitionFailure i -> logError (TransitionFailed i) >> continue lastHighestBid
@@ -326,7 +326,7 @@ auctionBuyer slotCfg currency params = do
         Just s -> loop s
 
         -- If the state can't be found we wait for it to appear.
-        Nothing -> SM.waitForUpdateUntilTime client (apEndTime params) >>= \case
+        Nothing -> SM.waitForUpdateUntilTimeOld client (apEndTime params) >>= \case
             Transition _ _ (Ongoing s) -> loop s
             InitialState _ (Ongoing s) -> loop s
             _                          -> logWarn CurrentStateNotFound

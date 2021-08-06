@@ -36,24 +36,24 @@ limit = HedgehogTestLimit (Just 5)
 
 tests :: TestTree
 tests = localOption limit $ testGroup "use cases" [
-    Spec.Crowdfunding.tests,
-    Spec.Vesting.tests,
-    Spec.ErrorHandling.tests,
-    Spec.Future.tests,
-    -- disable temporarily, because we need to adopt the signing API
-    -- Spec.MultiSig.tests,
-    Spec.MultiSigStateMachine.tests,
-    Spec.Currency.tests,
-    Spec.PubKey.tests,
-    Spec.Escrow.tests,
-    Spec.SimpleEscrow.tests,
-    Spec.GameStateMachine.tests,
-    Spec.Rollup.tests,
-    Spec.TokenAccount.tests,
-    Spec.PingPong.tests,
-    Spec.Prism.tests,
-    Spec.Stablecoin.tests,
-    Spec.Auction.tests,
-    Spec.Governance.tests,
-    Spec.Uniswap.tests
+    -- Spec.Crowdfunding.tests,
+    -- Spec.Vesting.tests,
+    -- Spec.ErrorHandling.tests,
+    Spec.Future.tests
+    -- -- disable temporarily, because we need to adopt the signing API
+    -- -- Spec.MultiSig.tests,
+    -- Spec.MultiSigStateMachine.tests,
+    -- Spec.Currency.tests,
+    -- Spec.PubKey.tests,
+    -- Spec.Escrow.tests,
+    -- Spec.SimpleEscrow.tests,
+    -- Spec.GameStateMachine.tests,
+    -- Spec.Rollup.tests,
+    -- Spec.TokenAccount.tests,
+    -- Spec.PingPong.tests,
+    -- Spec.Prism.tests,
+    -- Spec.Stablecoin.tests,
+    -- Spec.Auction.tests,
+    -- Spec.Governance.tests,
+    -- Spec.Uniswap.tests
     ]

@@ -95,7 +95,7 @@ import           Ledger.Typed.Tx              (TypedScriptTxOut (..))
 import           Ledger.Value                 (AssetClass, TokenName, Value)
 import qualified Ledger.Value                 as Value
 import           Plutus.Contract
-import           Plutus.Contract.StateMachine (AsSMContractError, OnChainState (..), SMContractError, State (..),
+import           Plutus.Contract.StateMachine (AsSMContractError, OnChainStateOld (..), SMContractError, State (..),
                                                StateMachine, StateMachineClient (..), Void)
 import qualified Plutus.Contract.StateMachine as StateMachine
 import qualified PlutusTx
@@ -376,7 +376,7 @@ machineClient ::
     -> StateMachineClient BankState Input
 machineClient inst stablecoin =
     let machine = stablecoinStateMachine stablecoin
-    in StateMachine.mkStateMachineClient (StateMachine.StateMachineInstance machine inst)
+    in StateMachine.mkStateMachineClientOld (StateMachine.StateMachineInstance machine inst)
 
 type StablecoinSchema =
         Endpoint "run step" Input
@@ -402,20 +402,20 @@ instance AsSMContractError StablecoinError where
 contract :: Promise () StablecoinSchema StablecoinError ()
 contract = endpoint @"initialise" $ \sc -> do
     let theClient = machineClient (typedValidator sc) sc
-    _ <- StateMachine.runInitialise theClient (initialState theClient) mempty
+    _ <- StateMachine.runInitialiseOld theClient (initialState theClient) mempty
     forever $ awaitPromise $ endpoint @"run step" $ \i -> do
         checkTransition theClient sc i
-        StateMachine.runStep theClient i
+        StateMachine.runStepOld theClient i
 
 -- | Apply 'checkValidState' to the states before and after a transition
 --   and log a warning if something isn't right.
 checkTransition :: StateMachineClient BankState Input -> Stablecoin -> Input -> Contract () StablecoinSchema StablecoinError ()
 checkTransition theClient sc i@Input{inpConversionRate} = do
-        currentState <- mapError StateMachineError $ StateMachine.getOnChainState theClient
+        currentState <- mapError StateMachineError $ StateMachine.getOnChainStateOld theClient
         case checkHashOffChain inpConversionRate of
             Right Observation{obsValue} -> do
                 case currentState of
-                    Just (OnChainState{ocsTxOut=TypedScriptTxOut{tyTxOutData}}, _) -> do
+                    Just (OnChainStateOld{ocsTxOut=TypedScriptTxOut{tyTxOutData}}, _) -> do
                         case checkValidState sc tyTxOutData obsValue of
                             Right _ -> logInfo @Haskell.String "Current state OK"
                             Left w  -> logInfo $ "Current state is invalid: " <> Haskell.show w <> ". The transition may still be allowed."

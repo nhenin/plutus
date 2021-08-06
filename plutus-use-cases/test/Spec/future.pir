@@ -223,6 +223,84 @@
             )
           )
         )
+<<<<<<< HEAD
+=======
+        (datatypebind
+          (datatype
+            (tyvardecl TxConstraint (type))
+
+            TxConstraint_match
+            (vardecl MustBeSignedBy (fun (con bytestring) TxConstraint))
+            (vardecl
+              MustHashDatum (fun (con bytestring) (fun (con data) TxConstraint))
+            )
+            (vardecl MustIncludeDatum (fun (con data) TxConstraint))
+            (vardecl
+              MustMintValue
+              (fun (con bytestring) (fun (con data) (fun (con bytestring) (fun (con integer) TxConstraint))))
+            )
+            (vardecl
+              MustPayToOtherScript
+              (fun (con bytestring) (fun (con data) (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] TxConstraint)))
+            )
+            (vardecl
+              MustPayToPubKey
+              (fun (con bytestring) (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] TxConstraint))
+            )
+            (vardecl
+              MustProduceAtLeast
+              (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] TxConstraint)
+            )
+            (vardecl
+              MustSpendAtLeast
+              (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] TxConstraint)
+            )
+            (vardecl MustSpendPubKeyOutput (fun TxOutRef TxConstraint))
+            (vardecl MustSpendPubKeyOutput (fun TxOutRef TxConstraint))
+            (vardecl
+              MustSpendScriptOutput (fun TxOutRef (fun (con data) TxConstraint))
+            )
+            (vardecl
+              MustSpendScriptOutput (fun TxOutRef (fun (con data) TxConstraint))
+            )
+            (vardecl MustValidateIn (fun [Interval (con integer)] TxConstraint))
+          )
+        )
+        (datatypebind
+          (datatype
+            (tyvardecl TxConstraints (fun (type) (fun (type) (type))))
+            (tyvardecl i (type)) (tyvardecl o (type))
+            TxConstraints_match
+            (vardecl
+              TxConstraints
+              (fun [List TxConstraint] (fun [List [InputConstraint i]] (fun [List [OutputConstraint o]] [[TxConstraints i] o])))
+            )
+          )
+        )
+        (datatypebind
+          (datatype
+            (tyvardecl StateMachine (fun (type) (fun (type) (type))))
+            (tyvardecl s (type)) (tyvardecl i (type))
+            StateMachine_match
+            (vardecl
+              StateMachine
+              (fun (fun [State s] (fun i [Maybe [[Tuple2 [[TxConstraints Void] Void]] [State s]]])) (fun (fun s Bool) (fun (fun s (fun i (fun ScriptContext Bool))) (fun [Maybe ThreadToken] [[StateMachine s] i]))))
+            )
+          )
+        )
+        (termbind
+          (strict)
+          (vardecl
+            mkStateMachine
+            (all s (type) (all i (type) (fun s (fun i (fun ScriptContext Bool)))))
+          )
+          (abs
+            s
+            (type)
+            (abs i (type) (lam ds s (lam ds i (lam ds ScriptContext True))))
+          )
+        )
+>>>>>>> 0f23aa067 (SCP-2566: Use new chain index effects everywhere in emulator, plutus-use-cases and plutus-pab.)
         (let
           (rec)
           (datatypebind

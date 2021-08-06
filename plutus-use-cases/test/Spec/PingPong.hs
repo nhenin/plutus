@@ -7,7 +7,7 @@ import           Data.Maybe                   (isNothing)
 import           Plutus.Contract
 import           Plutus.Contract.Test
 
-import           Plutus.Contract.StateMachine (OnChainState)
+import           Plutus.Contract.StateMachine (OnChainStateOld)
 import           Plutus.Contracts.PingPong    (Input, PingPongError, PingPongSchema, PingPongState)
 import qualified Plutus.Contracts.PingPong    as PingPong
 import qualified Plutus.Trace.Emulator        as Trace
@@ -21,7 +21,7 @@ theContract = do
     PingPong.runPing
     PingPong.runPong
 
-twoParties :: Contract () PingPongSchema PingPongError (Maybe (OnChainState PingPongState Input))
+twoParties :: Contract () PingPongSchema PingPongError (Maybe (OnChainStateOld PingPongState Input))
 twoParties =
     -- one party calls "initialise"
     -- the other party calls "stop"
@@ -37,11 +37,11 @@ w2 = Wallet 2
 
 tests :: TestTree
 tests = testGroup "pingpong"
-    [ checkPredicate "activate endpoints"
+    [ checkPredicateOld "activate endpoints"
         (endpointAvailable @"pong" theContract (Trace.walletInstanceTag w1))
         pingPongTrace
 
-    , checkPredicate "Stop the contract"
+    , checkPredicateOld "Stop the contract"
         (assertDone twoParties (Trace.walletInstanceTag w1) isNothing "W1"
         .&&. assertDone twoParties (Trace.walletInstanceTag w2) isNothing "W2"
         )

@@ -55,10 +55,12 @@ instance Monoid CredentialMap where
     mappend = (<>)
     mempty  = CredentialMap mempty
 
+-- TODO: Add a regression test
 txCredentialMap :: ChainIndexTx -> CredentialMap
-txCredentialMap =
+txCredentialMap  =
     let credential TxOut{txOutAddress=Address{addressCredential}} = addressCredential
-    in CredentialMap . Map.fromList . fmap (bimap credential Set.singleton) . txOutRefs
+    -- in CredentialMap . Map.fromList . fmap (bimap credential Set.singleton) . txOutRefs
+    in CredentialMap . Map.fromListWith ((<>)) . fmap (bimap credential Set.singleton) . txOutRefs
 
 -- | Data that we keep on disk. (This type is used for testing only - we need
 --   other structures for the disk-backed storage)

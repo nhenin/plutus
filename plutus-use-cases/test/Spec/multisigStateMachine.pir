@@ -602,6 +602,72 @@
             )
           )
         )
+<<<<<<< HEAD
+=======
+        (datatypebind
+          (datatype
+            (tyvardecl TxConstraint (type))
+
+            TxConstraint_match
+            (vardecl MustBeSignedBy (fun (con bytestring) TxConstraint))
+            (vardecl
+              MustHashDatum (fun (con bytestring) (fun (con data) TxConstraint))
+            )
+            (vardecl MustIncludeDatum (fun (con data) TxConstraint))
+            (vardecl
+              MustMintValue
+              (fun (con bytestring) (fun (con data) (fun (con bytestring) (fun (con integer) TxConstraint))))
+            )
+            (vardecl
+              MustPayToOtherScript
+              (fun (con bytestring) (fun (con data) (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] TxConstraint)))
+            )
+            (vardecl
+              MustPayToPubKey
+              (fun (con bytestring) (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] TxConstraint))
+            )
+            (vardecl
+              MustProduceAtLeast
+              (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] TxConstraint)
+            )
+            (vardecl
+              MustSpendAtLeast
+              (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] TxConstraint)
+            )
+            (vardecl MustSpendPubKeyOutput (fun TxOutRef TxConstraint))
+            (vardecl MustSpendPubKeyOutput (fun TxOutRef TxConstraint))
+            (vardecl
+              MustSpendScriptOutput (fun TxOutRef (fun (con data) TxConstraint))
+            )
+            (vardecl
+              MustSpendScriptOutput (fun TxOutRef (fun (con data) TxConstraint))
+            )
+            (vardecl MustValidateIn (fun [Interval (con integer)] TxConstraint))
+          )
+        )
+        (datatypebind
+          (datatype
+            (tyvardecl TxConstraints (fun (type) (fun (type) (type))))
+            (tyvardecl i (type)) (tyvardecl o (type))
+            TxConstraints_match
+            (vardecl
+              TxConstraints
+              (fun [List TxConstraint] (fun [List [InputConstraint i]] (fun [List [OutputConstraint o]] [[TxConstraints i] o])))
+            )
+          )
+        )
+        (datatypebind
+          (datatype
+            (tyvardecl StateMachine (fun (type) (fun (type) (type))))
+            (tyvardecl s (type)) (tyvardecl i (type))
+            StateMachine_match
+            (vardecl
+              StateMachine
+              (fun (fun [State s] (fun i [Maybe [[Tuple2 [[TxConstraints Void] Void]] [State s]]])) (fun (fun s Bool) (fun (fun s (fun i (fun ScriptContext Bool))) (fun [Maybe ThreadToken] [[StateMachine s] i]))))
+            )
+          )
+        )
+>>>>>>> 0f23aa067 (SCP-2566: Use new chain index effects everywhere in emulator, plutus-use-cases and plutus-pab.)
         (let
           (rec)
           (datatypebind
@@ -8985,6 +9051,7 @@
                                                     [
                                                       [
                                                         [
+<<<<<<< HEAD
                                                           [
                                                             [
                                                               {
@@ -9101,9 +9168,127 @@
                                                                               [
                                                                                 [
                                                                                   {
+=======
+                                                          {
+                                                            [
+                                                              TxConstraint_match
+                                                              ds
+                                                            ]
+                                                            Bool
+                                                          }
+                                                          (lam
+                                                            pubKey
+                                                            (con bytestring)
+                                                            {
+                                                              [
+                                                                [
+                                                                  {
+                                                                    [
+                                                                      Bool_match
+                                                                      [
+                                                                        [
+                                                                          txSignedBy
+                                                                          ds
+                                                                        ]
+                                                                        pubKey
+                                                                      ]
+                                                                    ]
+                                                                    (all dead (type) Bool)
+                                                                  }
+                                                                  (abs
+                                                                    dead
+                                                                    (type)
+                                                                    True
+                                                                  )
+                                                                ]
+                                                                (abs
+                                                                  dead
+                                                                  (type)
+                                                                  [
+                                                                    [
+                                                                      {
+                                                                        (builtin
+                                                                          trace
+                                                                        )
+                                                                        Bool
+                                                                      }
+                                                                      (con
+                                                                        string
+                                                                          "L4"
+                                                                      )
+                                                                    ]
+                                                                    False
+                                                                  ]
+                                                                )
+                                                              ]
+                                                              (all dead (type) dead)
+                                                            }
+                                                          )
+                                                        ]
+                                                        (lam
+                                                          dvh
+                                                          (con bytestring)
+                                                          (lam
+                                                            dv
+                                                            (con data)
+                                                            (let
+                                                              (nonrec)
+                                                              (termbind
+                                                                (nonstrict)
+                                                                (vardecl j Bool)
+                                                                [
+                                                                  [
+                                                                    {
+                                                                      (builtin
+                                                                        trace
+                                                                      )
+                                                                      Bool
+                                                                    }
+                                                                    (con
+                                                                      string
+                                                                        "Lc"
+                                                                    )
+                                                                  ]
+                                                                  False
+                                                                ]
+                                                              )
+                                                              {
+                                                                [
+                                                                  [
+                                                                    {
+                                                                      [
+                                                                        {
+                                                                          Maybe_match
+                                                                          (con data)
+                                                                        }
+                                                                        [
+                                                                          [
+                                                                            findDatum
+                                                                            dvh
+                                                                          ]
+                                                                          ds
+                                                                        ]
+                                                                      ]
+                                                                      (all dead (type) Bool)
+                                                                    }
+                                                                    (lam
+                                                                      a
+                                                                      (con data)
+                                                                      (abs
+                                                                        dead
+                                                                        (type)
+                                                                        {
+                                                                          [
+                                                                            [
+                                                                              {
+                                                                                [
+                                                                                  Bool_match
+                                                                                  [
+>>>>>>> 0f23aa067 (SCP-2566: Use new chain index effects everywhere in emulator, plutus-use-cases and plutus-pab.)
                                                                                     [
                                                                                       Bool_match
                                                                                       [
+<<<<<<< HEAD
                                                                                         [
                                                                                           [
                                                                                             {
@@ -9281,6 +9466,178 @@
                                                                                   }
                                                                                 )
                                                                               )
+=======
+                                                                                        {
+                                                                                          (builtin
+                                                                                            ifThenElse
+                                                                                          )
+                                                                                          Bool
+                                                                                        }
+                                                                                        [
+                                                                                          [
+                                                                                            (builtin
+                                                                                              equalsData
+                                                                                            )
+                                                                                            a
+                                                                                          ]
+                                                                                          dv
+                                                                                        ]
+                                                                                      ]
+                                                                                      True
+                                                                                    ]
+                                                                                    False
+                                                                                  ]
+                                                                                ]
+                                                                                (all dead (type) Bool)
+                                                                              }
+                                                                              (abs
+                                                                                dead
+                                                                                (type)
+                                                                                True
+                                                                              )
+                                                                            ]
+                                                                            (abs
+                                                                              dead
+                                                                              (type)
+                                                                              j
+                                                                            )
+                                                                          ]
+                                                                          (all dead (type) dead)
+                                                                        }
+                                                                      )
+                                                                    )
+                                                                  ]
+                                                                  (abs
+                                                                    dead
+                                                                    (type)
+                                                                    j
+                                                                  )
+                                                                ]
+                                                                (all dead (type) dead)
+                                                              }
+                                                            )
+                                                          )
+                                                        )
+                                                      ]
+                                                      (lam
+                                                        dv
+                                                        (con data)
+                                                        [
+                                                          {
+                                                            [ TxInfo_match ds ]
+                                                            Bool
+                                                          }
+                                                          (lam
+                                                            ds
+                                                            [List TxInInfo]
+                                                            (lam
+                                                              ds
+                                                              [List TxOut]
+                                                              (lam
+                                                                ds
+                                                                [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                (lam
+                                                                  ds
+                                                                  [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                  (lam
+                                                                    ds
+                                                                    [List DCert]
+                                                                    (lam
+                                                                      ds
+                                                                      [List [[Tuple2 StakingCredential] (con integer)]]
+                                                                      (lam
+                                                                        ds
+                                                                        [Interval (con integer)]
+                                                                        (lam
+                                                                          ds
+                                                                          [List (con bytestring)]
+                                                                          (lam
+                                                                            ds
+                                                                            [List [[Tuple2 (con bytestring)] (con data)]]
+                                                                            (lam
+                                                                              ds
+                                                                              (con bytestring)
+                                                                              {
+                                                                                [
+                                                                                  [
+                                                                                    {
+                                                                                      [
+                                                                                        Bool_match
+                                                                                        [
+                                                                                          [
+                                                                                            [
+                                                                                              {
+                                                                                                {
+                                                                                                  fFoldableNil_cfoldMap
+                                                                                                  [(lam a (type) a) Bool]
+                                                                                                }
+                                                                                                (con data)
+                                                                                              }
+                                                                                              [
+                                                                                                {
+                                                                                                  fMonoidSum
+                                                                                                  Bool
+                                                                                                }
+                                                                                                fAdditiveMonoidBool
+                                                                                              ]
+                                                                                            ]
+                                                                                            [
+                                                                                              equalsData
+                                                                                              dv
+                                                                                            ]
+                                                                                          ]
+                                                                                          [
+                                                                                            [
+                                                                                              {
+                                                                                                {
+                                                                                                  fFunctorNil_cfmap
+                                                                                                  [[Tuple2 (con bytestring)] (con data)]
+                                                                                                }
+                                                                                                (con data)
+                                                                                              }
+                                                                                              {
+                                                                                                {
+                                                                                                  snd
+                                                                                                  (con bytestring)
+                                                                                                }
+                                                                                                (con data)
+                                                                                              }
+                                                                                            ]
+                                                                                            ds
+                                                                                          ]
+                                                                                        ]
+                                                                                      ]
+                                                                                      (all dead (type) Bool)
+                                                                                    }
+                                                                                    (abs
+                                                                                      dead
+                                                                                      (type)
+                                                                                      True
+                                                                                    )
+                                                                                  ]
+                                                                                  (abs
+                                                                                    dead
+                                                                                    (type)
+                                                                                    [
+                                                                                      [
+                                                                                        {
+                                                                                          (builtin
+                                                                                            trace
+                                                                                          )
+                                                                                          Bool
+                                                                                        }
+                                                                                        (con
+                                                                                          string
+                                                                                            "L2"
+                                                                                        )
+                                                                                      ]
+                                                                                      False
+                                                                                    ]
+                                                                                  )
+                                                                                ]
+                                                                                (all dead (type) dead)
+                                                                              }
+>>>>>>> 0f23aa067 (SCP-2566: Use new chain index effects everywhere in emulator, plutus-use-cases and plutus-pab.)
                                                                             )
                                                                           )
                                                                         )
@@ -9292,6 +9649,7 @@
                                                             ]
                                                           )
                                                         ]
+<<<<<<< HEAD
                                                         (lam
                                                           mps
                                                           (con bytestring)
@@ -9308,9 +9666,33 @@
                                                                   [
                                                                     [
                                                                       {
+=======
+                                                      )
+                                                    ]
+                                                    (lam
+                                                      mps
+                                                      (con bytestring)
+                                                      (lam
+                                                        ds
+                                                        (con data)
+                                                        (lam
+                                                          tn
+                                                          (con bytestring)
+                                                          (lam
+                                                            v
+                                                            (con integer)
+                                                            {
+                                                              [
+                                                                [
+                                                                  {
+                                                                    [
+                                                                      Bool_match
+                                                                      [
+>>>>>>> 0f23aa067 (SCP-2566: Use new chain index effects everywhere in emulator, plutus-use-cases and plutus-pab.)
                                                                         [
                                                                           Bool_match
                                                                           [
+<<<<<<< HEAD
                                                                             [
                                                                               [
                                                                                 {
@@ -9369,6 +9751,62 @@
                                                                                                                 ds
                                                                                                               )
                                                                                                             )
+=======
+                                                                            {
+                                                                              (builtin
+                                                                                ifThenElse
+                                                                              )
+                                                                              Bool
+                                                                            }
+                                                                            [
+                                                                              [
+                                                                                (builtin
+                                                                                  equalsInteger
+                                                                                )
+                                                                                [
+                                                                                  [
+                                                                                    [
+                                                                                      valueOf
+                                                                                      [
+                                                                                        {
+                                                                                          [
+                                                                                            TxInfo_match
+                                                                                            ds
+                                                                                          ]
+                                                                                          [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                        }
+                                                                                        (lam
+                                                                                          ds
+                                                                                          [List TxInInfo]
+                                                                                          (lam
+                                                                                            ds
+                                                                                            [List TxOut]
+                                                                                            (lam
+                                                                                              ds
+                                                                                              [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                              (lam
+                                                                                                ds
+                                                                                                [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                                (lam
+                                                                                                  ds
+                                                                                                  [List DCert]
+                                                                                                  (lam
+                                                                                                    ds
+                                                                                                    [List [[Tuple2 StakingCredential] (con integer)]]
+                                                                                                    (lam
+                                                                                                      ds
+                                                                                                      [Interval (con integer)]
+                                                                                                      (lam
+                                                                                                        ds
+                                                                                                        [List (con bytestring)]
+                                                                                                        (lam
+                                                                                                          ds
+                                                                                                          [List [[Tuple2 (con bytestring)] (con data)]]
+                                                                                                          (lam
+                                                                                                            ds
+                                                                                                            (con bytestring)
+                                                                                                            ds
+>>>>>>> 0f23aa067 (SCP-2566: Use new chain index effects everywhere in emulator, plutus-use-cases and plutus-pab.)
                                                                                                           )
                                                                                                         )
                                                                                                       )
@@ -9377,6 +9815,7 @@
                                                                                                 )
                                                                                               )
                                                                                             )
+<<<<<<< HEAD
                                                                                           ]
                                                                                         ]
                                                                                         mps
@@ -9388,9 +9827,22 @@
                                                                                 ]
                                                                               ]
                                                                               True
+=======
+                                                                                          )
+                                                                                        )
+                                                                                      ]
+                                                                                    ]
+                                                                                    mps
+                                                                                  ]
+                                                                                  tn
+                                                                                ]
+                                                                              ]
+                                                                              v
+>>>>>>> 0f23aa067 (SCP-2566: Use new chain index effects everywhere in emulator, plutus-use-cases and plutus-pab.)
                                                                             ]
                                                                             False
                                                                           ]
+<<<<<<< HEAD
                                                                         ]
                                                                         (all dead (type) Bool)
                                                                       }
@@ -9745,6 +10197,359 @@
                                                                                     }
                                                                                   )
                                                                                 )
+=======
+                                                                          True
+                                                                        ]
+                                                                        False
+                                                                      ]
+                                                                    ]
+                                                                    (all dead (type) Bool)
+                                                                  }
+                                                                  (abs
+                                                                    dead
+                                                                    (type)
+                                                                    True
+                                                                  )
+                                                                ]
+                                                                (abs
+                                                                  dead
+                                                                  (type)
+                                                                  [
+                                                                    [
+                                                                      {
+                                                                        (builtin
+                                                                          trace
+                                                                        )
+                                                                        Bool
+                                                                      }
+                                                                      (con
+                                                                        string
+                                                                          "L9"
+                                                                      )
+                                                                    ]
+                                                                    False
+                                                                  ]
+                                                                )
+                                                              ]
+                                                              (all dead (type) dead)
+                                                            }
+                                                          )
+                                                        )
+                                                      )
+                                                    )
+                                                  ]
+                                                  (lam
+                                                    vlh
+                                                    (con bytestring)
+                                                    (lam
+                                                      dv
+                                                      (con data)
+                                                      (lam
+                                                        vl
+                                                        [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                        (let
+                                                          (nonrec)
+                                                          (termbind
+                                                            (nonstrict)
+                                                            (vardecl
+                                                              hsh
+                                                              [Maybe (con bytestring)]
+                                                            )
+                                                            [
+                                                              [
+                                                                findDatumHash dv
+                                                              ]
+                                                              ds
+                                                            ]
+                                                          )
+                                                          (termbind
+                                                            (nonstrict)
+                                                            (vardecl
+                                                              addr Credential
+                                                            )
+                                                            [
+                                                              ScriptCredential
+                                                              vlh
+                                                            ]
+                                                          )
+                                                          (termbind
+                                                            (nonstrict)
+                                                            (vardecl
+                                                              addr Address
+                                                            )
+                                                            [
+                                                              [ Address addr ]
+                                                              {
+                                                                Nothing
+                                                                StakingCredential
+                                                              }
+                                                            ]
+                                                          )
+                                                          [
+                                                            {
+                                                              [
+                                                                TxInfo_match ds
+                                                              ]
+                                                              Bool
+                                                            }
+                                                            (lam
+                                                              ds
+                                                              [List TxInInfo]
+                                                              (lam
+                                                                ds
+                                                                [List TxOut]
+                                                                (lam
+                                                                  ds
+                                                                  [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                  (lam
+                                                                    ds
+                                                                    [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                    (lam
+                                                                      ds
+                                                                      [List DCert]
+                                                                      (lam
+                                                                        ds
+                                                                        [List [[Tuple2 StakingCredential] (con integer)]]
+                                                                        (lam
+                                                                          ds
+                                                                          [Interval (con integer)]
+                                                                          (lam
+                                                                            ds
+                                                                            [List (con bytestring)]
+                                                                            (lam
+                                                                              ds
+                                                                              [List [[Tuple2 (con bytestring)] (con data)]]
+                                                                              (lam
+                                                                                ds
+                                                                                (con bytestring)
+                                                                                {
+                                                                                  [
+                                                                                    [
+                                                                                      {
+                                                                                        [
+                                                                                          Bool_match
+                                                                                          [
+                                                                                            [
+                                                                                              [
+                                                                                                {
+                                                                                                  {
+                                                                                                    fFoldableNil_cfoldMap
+                                                                                                    [(lam a (type) a) Bool]
+                                                                                                  }
+                                                                                                  TxOut
+                                                                                                }
+                                                                                                [
+                                                                                                  {
+                                                                                                    fMonoidSum
+                                                                                                    Bool
+                                                                                                  }
+                                                                                                  fAdditiveMonoidBool
+                                                                                                ]
+                                                                                              ]
+                                                                                              (lam
+                                                                                                ds
+                                                                                                TxOut
+                                                                                                [
+                                                                                                  {
+                                                                                                    [
+                                                                                                      TxOut_match
+                                                                                                      ds
+                                                                                                    ]
+                                                                                                    Bool
+                                                                                                  }
+                                                                                                  (lam
+                                                                                                    ds
+                                                                                                    Address
+                                                                                                    (lam
+                                                                                                      ds
+                                                                                                      [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                                      (lam
+                                                                                                        ds
+                                                                                                        [Maybe (con bytestring)]
+                                                                                                        {
+                                                                                                          [
+                                                                                                            [
+                                                                                                              {
+                                                                                                                [
+                                                                                                                  {
+                                                                                                                    Maybe_match
+                                                                                                                    (con bytestring)
+                                                                                                                  }
+                                                                                                                  ds
+                                                                                                                ]
+                                                                                                                (all dead (type) Bool)
+                                                                                                              }
+                                                                                                              (lam
+                                                                                                                svh
+                                                                                                                (con bytestring)
+                                                                                                                (abs
+                                                                                                                  dead
+                                                                                                                  (type)
+                                                                                                                  {
+                                                                                                                    [
+                                                                                                                      [
+                                                                                                                        {
+                                                                                                                          [
+                                                                                                                            Bool_match
+                                                                                                                            [
+                                                                                                                              [
+                                                                                                                                [
+                                                                                                                                  checkBinRel
+                                                                                                                                  equalsInteger
+                                                                                                                                ]
+                                                                                                                                ds
+                                                                                                                              ]
+                                                                                                                              vl
+                                                                                                                            ]
+                                                                                                                          ]
+                                                                                                                          (all dead (type) Bool)
+                                                                                                                        }
+                                                                                                                        (abs
+                                                                                                                          dead
+                                                                                                                          (type)
+                                                                                                                          {
+                                                                                                                            [
+                                                                                                                              [
+                                                                                                                                {
+                                                                                                                                  [
+                                                                                                                                    {
+                                                                                                                                      Maybe_match
+                                                                                                                                      (con bytestring)
+                                                                                                                                    }
+                                                                                                                                    hsh
+                                                                                                                                  ]
+                                                                                                                                  (all dead (type) Bool)
+                                                                                                                                }
+                                                                                                                                (lam
+                                                                                                                                  a
+                                                                                                                                  (con bytestring)
+                                                                                                                                  (abs
+                                                                                                                                    dead
+                                                                                                                                    (type)
+                                                                                                                                    {
+                                                                                                                                      [
+                                                                                                                                        [
+                                                                                                                                          {
+                                                                                                                                            [
+                                                                                                                                              Bool_match
+                                                                                                                                              [
+                                                                                                                                                [
+                                                                                                                                                  [
+                                                                                                                                                    {
+                                                                                                                                                      (builtin
+                                                                                                                                                        ifThenElse
+                                                                                                                                                      )
+                                                                                                                                                      Bool
+                                                                                                                                                    }
+                                                                                                                                                    [
+                                                                                                                                                      [
+                                                                                                                                                        (builtin
+                                                                                                                                                          equalsByteString
+                                                                                                                                                        )
+                                                                                                                                                        a
+                                                                                                                                                      ]
+                                                                                                                                                      svh
+                                                                                                                                                    ]
+                                                                                                                                                  ]
+                                                                                                                                                  True
+                                                                                                                                                ]
+                                                                                                                                                False
+                                                                                                                                              ]
+                                                                                                                                            ]
+                                                                                                                                            (all dead (type) Bool)
+                                                                                                                                          }
+                                                                                                                                          (abs
+                                                                                                                                            dead
+                                                                                                                                            (type)
+                                                                                                                                            [
+                                                                                                                                              [
+                                                                                                                                                fEqAddress_c
+                                                                                                                                                ds
+                                                                                                                                              ]
+                                                                                                                                              addr
+                                                                                                                                            ]
+                                                                                                                                          )
+                                                                                                                                        ]
+                                                                                                                                        (abs
+                                                                                                                                          dead
+                                                                                                                                          (type)
+                                                                                                                                          False
+                                                                                                                                        )
+                                                                                                                                      ]
+                                                                                                                                      (all dead (type) dead)
+                                                                                                                                    }
+                                                                                                                                  )
+                                                                                                                                )
+                                                                                                                              ]
+                                                                                                                              (abs
+                                                                                                                                dead
+                                                                                                                                (type)
+                                                                                                                                False
+                                                                                                                              )
+                                                                                                                            ]
+                                                                                                                            (all dead (type) dead)
+                                                                                                                          }
+                                                                                                                        )
+                                                                                                                      ]
+                                                                                                                      (abs
+                                                                                                                        dead
+                                                                                                                        (type)
+                                                                                                                        False
+                                                                                                                      )
+                                                                                                                    ]
+                                                                                                                    (all dead (type) dead)
+                                                                                                                  }
+                                                                                                                )
+                                                                                                              )
+                                                                                                            ]
+                                                                                                            (abs
+                                                                                                              dead
+                                                                                                              (type)
+                                                                                                              False
+                                                                                                            )
+                                                                                                          ]
+                                                                                                          (all dead (type) dead)
+                                                                                                        }
+                                                                                                      )
+                                                                                                    )
+                                                                                                  )
+                                                                                                ]
+                                                                                              )
+                                                                                            ]
+                                                                                            ds
+                                                                                          ]
+                                                                                        ]
+                                                                                        (all dead (type) Bool)
+                                                                                      }
+                                                                                      (abs
+                                                                                        dead
+                                                                                        (type)
+                                                                                        True
+                                                                                      )
+                                                                                    ]
+                                                                                    (abs
+                                                                                      dead
+                                                                                      (type)
+                                                                                      [
+                                                                                        [
+                                                                                          {
+                                                                                            (builtin
+                                                                                              trace
+                                                                                            )
+                                                                                            Bool
+                                                                                          }
+                                                                                          (con
+                                                                                            string
+                                                                                              "Lb"
+                                                                                          )
+                                                                                        ]
+                                                                                        False
+                                                                                      ]
+                                                                                    )
+                                                                                  ]
+                                                                                  (all dead (type) dead)
+                                                                                }
+>>>>>>> 0f23aa067 (SCP-2566: Use new chain index effects everywhere in emulator, plutus-use-cases and plutus-pab.)
                                                                               )
                                                                             )
                                                                           )
@@ -9755,9 +10560,10 @@
                                                                 )
                                                               ]
                                                             )
-                                                          )
+                                                          ]
                                                         )
                                                       )
+<<<<<<< HEAD
                                                     ]
                                                     (lam
                                                       pk
@@ -9816,6 +10622,8 @@
                                                           (all dead (type) dead)
                                                         }
                                                       )
+=======
+>>>>>>> 0f23aa067 (SCP-2566: Use new chain index effects everywhere in emulator, plutus-use-cases and plutus-pab.)
                                                     )
                                                   ]
                                                   (lam
@@ -9865,6 +10673,7 @@
                                                   )
                                                 ]
                                                 (lam
+<<<<<<< HEAD
                                                   xs
                                                   [List TxConstraint]
                                                   {
@@ -9920,6 +10729,58 @@
                                                     ]
                                                     (all dead (type) dead)
                                                   }
+=======
+                                                  pk
+                                                  (con bytestring)
+                                                  (lam
+                                                    vl
+                                                    [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                    {
+                                                      [
+                                                        [
+                                                          {
+                                                            [
+                                                              Bool_match
+                                                              [
+                                                                [
+                                                                  [
+                                                                    checkBinRel
+                                                                    lessThanEqInteger
+                                                                  ]
+                                                                  vl
+                                                                ]
+                                                                [
+                                                                  [
+                                                                    valuePaidTo
+                                                                    ds
+                                                                  ]
+                                                                  pk
+                                                                ]
+                                                              ]
+                                                            ]
+                                                            (all dead (type) Bool)
+                                                          }
+                                                          (abs dead (type) True)
+                                                        ]
+                                                        (abs
+                                                          dead
+                                                          (type)
+                                                          [
+                                                            [
+                                                              {
+                                                                (builtin trace)
+                                                                Bool
+                                                              }
+                                                              (con string "La")
+                                                            ]
+                                                            False
+                                                          ]
+                                                        )
+                                                      ]
+                                                      (all dead (type) dead)
+                                                    }
+                                                  )
+>>>>>>> 0f23aa067 (SCP-2566: Use new chain index effects everywhere in emulator, plutus-use-cases and plutus-pab.)
                                                 )
                                               ]
                                               (lam
@@ -9939,6 +10800,7 @@
                                                               ]
                                                               vl
                                                             ]
+<<<<<<< HEAD
                                                             [
                                                               {
                                                                 [
@@ -10037,6 +10899,145 @@
                                                                                   ]
                                                                                 )
                                                                               )
+=======
+                                                            [ valueProduced ds ]
+                                                          ]
+                                                        ]
+                                                        (all dead (type) Bool)
+                                                      }
+                                                      (abs dead (type) True)
+                                                    ]
+                                                    (abs
+                                                      dead
+                                                      (type)
+                                                      [
+                                                        [
+                                                          {
+                                                            (builtin trace) Bool
+                                                          }
+                                                          (con string "L6")
+                                                        ]
+                                                        False
+                                                      ]
+                                                    )
+                                                  ]
+                                                  (all dead (type) dead)
+                                                }
+                                              )
+                                            ]
+                                            (lam
+                                              vl
+                                              [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                              {
+                                                [
+                                                  [
+                                                    {
+                                                      [
+                                                        Bool_match
+                                                        [
+                                                          [
+                                                            [
+                                                              checkBinRel
+                                                              lessThanEqInteger
+                                                            ]
+                                                            vl
+                                                          ]
+                                                          [
+                                                            {
+                                                              [
+                                                                TxInfo_match ds
+                                                              ]
+                                                              [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                            }
+                                                            (lam
+                                                              ds
+                                                              [List TxInInfo]
+                                                              (lam
+                                                                ds
+                                                                [List TxOut]
+                                                                (lam
+                                                                  ds
+                                                                  [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                  (lam
+                                                                    ds
+                                                                    [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                    (lam
+                                                                      ds
+                                                                      [List DCert]
+                                                                      (lam
+                                                                        ds
+                                                                        [List [[Tuple2 StakingCredential] (con integer)]]
+                                                                        (lam
+                                                                          ds
+                                                                          [Interval (con integer)]
+                                                                          (lam
+                                                                            ds
+                                                                            [List (con bytestring)]
+                                                                            (lam
+                                                                              ds
+                                                                              [List [[Tuple2 (con bytestring)] (con data)]]
+                                                                              (lam
+                                                                                ds
+                                                                                (con bytestring)
+                                                                                [
+                                                                                  [
+                                                                                    [
+                                                                                      {
+                                                                                        {
+                                                                                          fFoldableNil_cfoldMap
+                                                                                          [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                        }
+                                                                                        TxInInfo
+                                                                                      }
+                                                                                      fMonoidValue
+                                                                                    ]
+                                                                                    (lam
+                                                                                      x
+                                                                                      TxInInfo
+                                                                                      [
+                                                                                        {
+                                                                                          [
+                                                                                            TxInInfo_match
+                                                                                            x
+                                                                                          ]
+                                                                                          [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                        }
+                                                                                        (lam
+                                                                                          ds
+                                                                                          TxOutRef
+                                                                                          (lam
+                                                                                            ds
+                                                                                            TxOut
+                                                                                            [
+                                                                                              {
+                                                                                                [
+                                                                                                  TxOut_match
+                                                                                                  ds
+                                                                                                ]
+                                                                                                [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                              }
+                                                                                              (lam
+                                                                                                ds
+                                                                                                Address
+                                                                                                (lam
+                                                                                                  ds
+                                                                                                  [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                                                  (lam
+                                                                                                    ds
+                                                                                                    [Maybe (con bytestring)]
+                                                                                                    ds
+                                                                                                  )
+                                                                                                )
+                                                                                              )
+                                                                                            ]
+                                                                                          )
+                                                                                        )
+                                                                                      ]
+                                                                                    )
+                                                                                  ]
+                                                                                  ds
+                                                                                ]
+                                                                              )
                                                                             )
                                                                           )
                                                                         )
@@ -10045,7 +11046,246 @@
                                                                   )
                                                                 )
                                                               )
+                                                            )
+                                                          ]
+                                                        ]
+                                                      ]
+                                                      (all dead (type) Bool)
+                                                    }
+                                                    (abs dead (type) True)
+                                                  ]
+                                                  (abs
+                                                    dead
+                                                    (type)
+                                                    [
+                                                      [
+                                                        { (builtin trace) Bool }
+                                                        (con string "L5")
+                                                      ]
+                                                      False
+                                                    ]
+                                                  )
+                                                ]
+                                                (all dead (type) dead)
+                                              }
+                                            )
+                                          ]
+                                          (lam
+                                            txOutRef
+                                            TxOutRef
+                                            (let
+                                              (nonrec)
+                                              (termbind
+                                                (nonstrict)
+                                                (vardecl j Bool)
+                                                [
+                                                  [
+                                                    { (builtin trace) Bool }
+                                                    (con string "L7")
+                                                  ]
+                                                  False
+                                                ]
+                                              )
+                                              {
+                                                [
+                                                  [
+                                                    {
+                                                      [
+                                                        { Maybe_match TxInInfo }
+                                                        [
+                                                          [
+                                                            findTxInByTxOutRef
+                                                            txOutRef
+                                                          ]
+                                                          ds
+                                                        ]
+                                                      ]
+                                                      (all dead (type) Bool)
+                                                    }
+                                                    (lam
+                                                      a
+                                                      TxInInfo
+                                                      (abs
+                                                        dead
+                                                        (type)
+                                                        [
+                                                          {
+                                                            [ TxInInfo_match a ]
+                                                            Bool
+                                                          }
+                                                          (lam
+                                                            ds
+                                                            TxOutRef
+                                                            (lam
+                                                              ds
+                                                              TxOut
+                                                              [
+                                                                {
+                                                                  [
+                                                                    TxOut_match
+                                                                    ds
+                                                                  ]
+                                                                  Bool
+                                                                }
+                                                                (lam
+                                                                  ds
+                                                                  Address
+                                                                  (lam
+                                                                    ds
+                                                                    [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                    (lam
+                                                                      ds
+                                                                      [Maybe (con bytestring)]
+                                                                      {
+                                                                        [
+                                                                          [
+                                                                            {
+                                                                              [
+                                                                                {
+                                                                                  Maybe_match
+                                                                                  (con bytestring)
+                                                                                }
+                                                                                ds
+                                                                              ]
+                                                                              (all dead (type) Bool)
+                                                                            }
+                                                                            (lam
+                                                                              ds
+                                                                              (con bytestring)
+                                                                              (abs
+                                                                                dead
+                                                                                (type)
+                                                                                j
+                                                                              )
+                                                                            )
+                                                                          ]
+                                                                          (abs
+                                                                            dead
+                                                                            (type)
+                                                                            True
+                                                                          )
+                                                                        ]
+                                                                        (all dead (type) dead)
+                                                                      }
+                                                                    )
+                                                                  )
+                                                                )
+                                                              ]
+                                                            )
+                                                          )
+                                                        ]
+                                                      )
+                                                    )
+                                                  ]
+                                                  (abs dead (type) j)
+                                                ]
+                                                (all dead (type) dead)
+                                              }
+                                            )
+                                          )
+                                        ]
+                                        (lam
+                                          txOutRef
+                                          TxOutRef
+                                          (let
+                                            (nonrec)
+                                            (termbind
+                                              (nonstrict)
+                                              (vardecl j Bool)
+                                              [
+                                                [
+                                                  { (builtin trace) Bool }
+                                                  (con string "L7")
+                                                ]
+                                                False
+                                              ]
+                                            )
+                                            {
+                                              [
+                                                [
+                                                  {
+                                                    [
+                                                      { Maybe_match TxInInfo }
+                                                      [
+                                                        [
+                                                          findTxInByTxOutRef
+                                                          txOutRef
+                                                        ]
+                                                        ds
+                                                      ]
+                                                    ]
+                                                    (all dead (type) Bool)
+                                                  }
+                                                  (lam
+                                                    a
+                                                    TxInInfo
+                                                    (abs
+                                                      dead
+                                                      (type)
+                                                      [
+                                                        {
+                                                          [ TxInInfo_match a ]
+                                                          Bool
+                                                        }
+                                                        (lam
+                                                          ds
+                                                          TxOutRef
+                                                          (lam
+                                                            ds
+                                                            TxOut
+                                                            [
+                                                              {
+                                                                [
+                                                                  TxOut_match ds
+                                                                ]
+                                                                Bool
+                                                              }
+                                                              (lam
+                                                                ds
+                                                                Address
+                                                                (lam
+                                                                  ds
+                                                                  [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                  (lam
+                                                                    ds
+                                                                    [Maybe (con bytestring)]
+                                                                    {
+                                                                      [
+                                                                        [
+                                                                          {
+                                                                            [
+                                                                              {
+                                                                                Maybe_match
+                                                                                (con bytestring)
+                                                                              }
+                                                                              ds
+                                                                            ]
+                                                                            (all dead (type) Bool)
+                                                                          }
+                                                                          (lam
+                                                                            ds
+                                                                            (con bytestring)
+                                                                            (abs
+                                                                              dead
+                                                                              (type)
+                                                                              j
+>>>>>>> 0f23aa067 (SCP-2566: Use new chain index effects everywhere in emulator, plutus-use-cases and plutus-pab.)
+                                                                            )
+                                                                          )
+                                                                        ]
+                                                                        (abs
+                                                                          dead
+                                                                          (type)
+                                                                          True
+                                                                        )
+                                                                      ]
+                                                                      (all dead (type) dead)
+                                                                    }
+                                                                  )
+                                                                )
+                                                              )
                                                             ]
+<<<<<<< HEAD
                                                           ]
                                                         ]
                                                         (all dead (type) Bool)
@@ -10078,6 +11318,31 @@
                                                 (termbind
                                                   (nonstrict)
                                                   (vardecl j Bool)
+=======
+                                                          )
+                                                        )
+                                                      ]
+                                                    )
+                                                  )
+                                                ]
+                                                (abs dead (type) j)
+                                              ]
+                                              (all dead (type) dead)
+                                            }
+                                          )
+                                        )
+                                      ]
+                                      (lam
+                                        txOutRef
+                                        TxOutRef
+                                        (lam
+                                          ds
+                                          (con data)
+                                          {
+                                            [
+                                              [
+                                                {
+>>>>>>> 0f23aa067 (SCP-2566: Use new chain index effects everywhere in emulator, plutus-use-cases and plutus-pab.)
                                                   [
                                                     [
                                                       { (builtin trace) Bool }
@@ -10085,6 +11350,7 @@
                                                     ]
                                                     False
                                                   ]
+<<<<<<< HEAD
                                                 )
                                                 {
                                                   [
@@ -10194,6 +11460,42 @@
                                             (lam
                                               ds
                                               (con data)
+=======
+                                                  (all dead (type) Bool)
+                                                }
+                                                (lam
+                                                  ds
+                                                  TxInInfo
+                                                  (abs dead (type) True)
+                                                )
+                                              ]
+                                              (abs
+                                                dead
+                                                (type)
+                                                [
+                                                  [
+                                                    { (builtin trace) Bool }
+                                                    (con string "L8")
+                                                  ]
+                                                  False
+                                                ]
+                                              )
+                                            ]
+                                            (all dead (type) dead)
+                                          }
+                                        )
+                                      )
+                                    ]
+                                    (lam
+                                      txOutRef
+                                      TxOutRef
+                                      (lam
+                                        ds
+                                        (con data)
+                                        {
+                                          [
+                                            [
+>>>>>>> 0f23aa067 (SCP-2566: Use new chain index effects everywhere in emulator, plutus-use-cases and plutus-pab.)
                                               {
                                                 [
                                                   [

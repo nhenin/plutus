@@ -82,7 +82,7 @@ publish = endpoint @"publish" $ \(i, lockedFunds) -> do
 -- | The "redeem" contract endpoint.
 redeem :: AsContractError e => Promise () Schema e ()
 redeem = endpoint @"redeem" $ \myRedeemerValue -> do
-    unspentOutputs <- utxoAt contractAddress
+    unspentOutputs <- utxosAt contractAddress
     let redeemer = MyRedeemer myRedeemerValue
         tx       = collectFromScript unspentOutputs redeemer
     void $ submitTxConstraintsSpending starterInstance unspentOutputs tx

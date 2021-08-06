@@ -249,7 +249,7 @@ typedValidator = Scripts.mkTypedValidatorParam @MultiSigSym
         wrap = Scripts.wrapValidator
 
 client :: Params -> SM.StateMachineClient MSState Input
-client params = SM.mkStateMachineClient $ SM.StateMachineInstance (machine params) (typedValidator params)
+client params = SM.mkStateMachineClientOld $ SM.StateMachineInstance (machine params) (typedValidator params)
 
 contract ::
     ( AsContractError e
@@ -260,11 +260,11 @@ contract ::
 contract params = forever endpoints where
     theClient = client params
     endpoints = selectList [lock, propose, cancel, addSignature, pay]
-    propose = endpoint @"propose-payment" $ void . SM.runStep theClient . ProposePayment
-    cancel  = endpoint @"cancel-payment" $ \() -> void $ SM.runStep theClient Cancel
-    addSignature = endpoint @"add-signature" $ \() -> (pubKeyHash <$> ownPubKey) >>= void . SM.runStep theClient . AddSignature
-    lock = endpoint @"lock" $ void . SM.runInitialise theClient Holding
-    pay = endpoint @"pay" $ \() -> void $ SM.runStep theClient Pay
+    propose = endpoint @"propose-payment" $ void . SM.runStepOld theClient . ProposePayment
+    cancel  = endpoint @"cancel-payment" $ \() -> void $ SM.runStepOld theClient Cancel
+    addSignature = endpoint @"add-signature" $ \() -> (pubKeyHash <$> ownPubKey) >>= void . SM.runStepOld theClient . AddSignature
+    lock = endpoint @"lock" $ void . SM.runInitialiseOld theClient Holding
+    pay = endpoint @"pay" $ \() -> void $ SM.runStepOld theClient Pay
 
 PlutusTx.unstableMakeIsData ''Payment
 PlutusTx.makeLift ''Payment

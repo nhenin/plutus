@@ -71,7 +71,7 @@ setupTokens = do
     forM_ wallets $ \w -> do
         let pkh = pubKeyHash $ walletPubKey w
         when (pkh /= ownPK) $ do
-            tx <- submitTx $ mustPayToPubKey pkh v
+            tx <- submitTxOld $ mustPayToPubKey pkh v
             awaitTxConfirmed $ txId tx
 
     tell $ Just $ Semigroup.Last cur
