@@ -158,6 +158,7 @@
           "Cardano/Wallet/Server"
           "Cardano/Wallet/Types"
           "Control/Concurrent/Availability"
+          "Control/Concurrent/STM/Extra"
           "Control/Monad/Freer/Delay"
           "Plutus/PAB/App"
           "Plutus/PAB/Arbitrary"
@@ -420,6 +421,8 @@
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
             (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
+            (hsPkgs."stm" or (errorHandler.buildDepError "stm"))
+            (hsPkgs."async" or (errorHandler.buildDepError "async"))
             ];
           buildable = true;
           modules = [
@@ -427,6 +430,7 @@
             "Cardano/Metadata/ServerSpec"
             "Cardano/Metadata/TypesSpec"
             "Cardano/Wallet/ServerSpec"
+            "Control/Concurrent/STM/ExtraSpec"
             ];
           hsSourceDirs = [ "test/light" ];
           mainPath = [ "Spec.hs" ];
