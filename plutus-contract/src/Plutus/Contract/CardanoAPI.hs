@@ -50,6 +50,7 @@ import qualified Data.Set                    as Set
 import           Data.Text.Prettyprint.Doc   (Pretty (..), colon, (<+>))
 import qualified Ledger                      as P
 import qualified Ledger.Ada                  as Ada
+import Plutus.Contract.CardanoAPITemp (makeTransactionBody')
 import qualified Plutus.V1.Ledger.Api        as Api
 import qualified Plutus.V1.Ledger.Credential as Credential
 import qualified Plutus.V1.Ledger.Value      as Value
@@ -88,7 +89,7 @@ toCardanoTxBody protocolParams networkId P.Tx{..} = do
     txFee' <- toCardanoFee txFee
     txValidityRange <- toCardanoValidityRange txValidRange
     txMintValue <- toCardanoMintValue txMint txMintScripts
-    first TxBodyError $ C.makeTransactionBody C.TxBodyContent
+    first TxBodyError $ makeTransactionBody' C.TxBodyContent
         { txIns = txIns
         , txInsCollateral = txInsCollateral
         , txOuts = txOuts
