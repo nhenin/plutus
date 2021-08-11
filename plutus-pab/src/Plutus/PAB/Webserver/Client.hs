@@ -1,4 +1,6 @@
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE RecordWildCards  #-}
+{-# LANGUAGE TypeApplications #-}
+
 -- | Servant client for PAB
 module Plutus.PAB.Webserver.Client (
     PabClient(..)
@@ -8,16 +10,13 @@ module Plutus.PAB.Webserver.Client (
 
 import           Data.Aeson                 (FromJSON, ToJSON (..))
 import qualified Data.Aeson                 as JSON
+import           Data.Proxy
 import           Data.Text                  (Text)
-
-import           Servant.API
-import           Servant.Client
-
 import           Plutus.PAB.Events.Contract
 import           Plutus.PAB.Webserver.API
 import           Plutus.PAB.Webserver.Types
-
-import           Data.Proxy
+import           Servant.API
+import           Servant.Client
 
 -- | Client for PAB. The first type-argument is contract type that is used for PAB-simulator.
 data PabClient t walletId = PabClient
@@ -37,6 +36,29 @@ data PabClient t walletId = PabClient
       -- ^ get definitions
   }
 
+-- TODO: ??? Review the PR for why we didn't like this.
+--
+--
+-- instance ToHttpApiData ContractInstanceId where
+--   toUrlPiece = undefined -- unContractInstanceId
+
+-- data WebSocketClient = WebSocketClient
+--   { contractInstanceUpdates :: ContractInstanceId -> Client ClientM WebSocketPending
+--   , combinedWebsocket :: Client ClientM WebSocketPending
+--   }
+
+-- TODO: Discussing with Torsten, this is a bit out of my league to be able to
+-- implement.
+-- instance HasClient ClientM WebSocketPending where
+--   clientWithRoute = undefined
+--   hoistClientMonad _ _ f ma = f ma
+
+-- wsClient :: WebSocketClient
+-- wsClient = WebSocketClient{..}
+--   where
+--     ( contractInstanceUpdates :<|> combinedWebsocket ) = client (Proxy @WSAPI)
+
+
 -- | Contract instance endpoints
 data InstanceClient t = InstanceClient
   { getInstanceStatus    :: ClientM (ContractInstanceClientState t)
@@ -50,7 +72,7 @@ data InstanceClient t = InstanceClient
   }
 
 -- | Init generic pab client
-pabClient :: (ToJSON t, FromJSON t, ToHttpApiData walletId) => PabClient t walletId
+pabClient :: forall t walletId. (ToJSON t, FromJSON t, ToHttpApiData walletId) => PabClient t walletId
 pabClient = PabClient{..}
   where
     (healthcheck
@@ -60,7 +82,7 @@ pabClient = PabClient{..}
       :<|> getWallet
       :<|> getInstances
       :<|> getDefinitions
-      ) = client (Proxy :: Proxy (API t walletId))
+      ) = client (Proxy @(API t walletId))
 
     instanceClient cid = InstanceClient{..}
         where
@@ -69,4 +91,3 @@ pabClient = PabClient{..}
             :<|> callInstanceEndpoint
             :<|> stopInstance
             ) = toInstanceClient cid
-
