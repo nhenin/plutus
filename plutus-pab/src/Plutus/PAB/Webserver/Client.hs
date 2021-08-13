@@ -36,29 +36,6 @@ data PabClient t walletId = PabClient
       -- ^ get definitions
   }
 
--- TODO: ??? Review the PR for why we didn't like this.
---
---
--- instance ToHttpApiData ContractInstanceId where
---   toUrlPiece = undefined -- unContractInstanceId
-
--- data WebSocketClient = WebSocketClient
---   { contractInstanceUpdates :: ContractInstanceId -> Client ClientM WebSocketPending
---   , combinedWebsocket :: Client ClientM WebSocketPending
---   }
-
--- TODO: Discussing with Torsten, this is a bit out of my league to be able to
--- implement.
--- instance HasClient ClientM WebSocketPending where
---   clientWithRoute = undefined
---   hoistClientMonad _ _ f ma = f ma
-
--- wsClient :: WebSocketClient
--- wsClient = WebSocketClient{..}
---   where
---     ( contractInstanceUpdates :<|> combinedWebsocket ) = client (Proxy @WSAPI)
-
-
 -- | Contract instance endpoints
 data InstanceClient t = InstanceClient
   { getInstanceStatus    :: ClientM (ContractInstanceClientState t)

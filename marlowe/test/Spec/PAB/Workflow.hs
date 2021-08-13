@@ -110,7 +110,7 @@ marloweCompanionFollowerContractExample :: IO ()
 marloweCompanionFollowerContractExample = do
   manager <- newManager defaultManagerSettings
 
-  let pabConfig = def { PAB.Types.pabWebserverConfig = def { PAB.Types.endpointTimeout = Just 15 } }
+  let pabConfig = def { PAB.Types.pabWebserverConfig = def { PAB.Types.endpointTimeout = Just 30 } }
       apiUrl = PAB.Types.baseUrl (PAB.Types.pabWebserverConfig pabConfig)
       apiClientEnv = mkClientEnv manager apiUrl
       walletUrl = coerce $ Wallet.Types.baseUrl (PAB.Types.walletServerConfig pabConfig)

@@ -43,7 +43,6 @@ allServices =
   ForkCommands
     [ StartMockNode
     , ChainIndex
-    , Metadata
     , MockWallet
     , PABWebserver
     ]
