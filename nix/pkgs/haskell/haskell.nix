@@ -2,11 +2,9 @@
 # Builds Haskell packages with Haskell.nix
 ############################################################################
 { lib
-, stdenv
 , rPackages
 , haskell-nix
 , agdaWithStdlib
-, buildPackages
 , gitignore-nix
 , z3
 , R
@@ -20,7 +18,7 @@
 }:
 let
   r-packages = with rPackages; [ R tidyverse dplyr stringr MASS plotly shiny shinyjs purrr ];
-  project = haskell-nix.cabalProject' {
+  project = haskell-nix.cabalProject' ({ pkgs, ... }: {
     inherit compiler-nix-name;
     # This is incredibly difficult to get right, almost everything goes wrong, see https://github.com/input-output-hk/haskell.nix/issues/496
     src = let root = ../../../.; in
@@ -37,8 +35,9 @@ let
     # At the moment, we only need one but conceivably we might need one for darwin in future.
     # See https://github.com/input-output-hk/nix-tools/issues/97
     materialized =
-      if stdenv.hostPlatform.isLinux then ./materialized-linux
-      else if stdenv.hostPlatform.isDarwin then ./materialized-darwin
+      if pkgs.stdenv.hostPlatform.isLinux then ./materialized-linux
+      else if pkgs.stdenv.hostPlatform.isDarwin then ./materialized-darwin
+      else if pkgs.stdenv.hostPlatform.isWindows then ./materialized-windows
       else builtins.error "Don't have materialized files for this platform";
     # If true, we check that the generated files are correct. Set in the CI so we don't make mistakes.
     inherit checkMaterialization;
@@ -58,9 +57,96 @@ let
       "https://github.com/input-output-hk/Win32-network"."3825d3abf75f83f406c1f7161883c438dac7277d" = "19wahfv726fa3mqajpqdqhnl9ica3xmf68i254q45iyjcpj1psqx";
       "https://github.com/input-output-hk/hedgehog-extras"."edf6945007177a638fbeb8802397f3a6f4e47c14" = "0wc7qzkc7j4ns2rz562h6qrx2f8xyq7yjcb7zidnj7f6j0pcd0i9";
     };
+    # Configuration settings needed for cabal configure to work when cross compiling
+    # to windows. We can't use `modules` for these as `modules` are only applied
+    # after cabal has been configured.
+    cabalProjectLocal = lib.optionalString pkgs.stdenv.hostPlatform.isWindows ''
+      -- When cross compiling we don't have a `ghc` package
+      package plutus-tx-plugin
+        flags: +use-ghc-stub
+
+      -- The following is needed because Nix is doing something crazy.
+      package byron-spec-ledger
+        tests: False
+
+      package marlowe
+        tests: False
+
+      package plutus-doc
+        tests: False
+
+      package plutus-metatheory
+        tests: False
+
+      package prettyprinter-configurable
+        tests: False
+
+      package small-steps
+        tests: False
+
+      package small-steps-test
+        tests: False
+
+      package byron-spec-chain
+        tests: False
+
+      package cardano-node
+        flags: -systemd
+
+      package cardano-config
+        flags: -systemd
+    '';
     modules = [
-      {
-        reinstallableLibGhc = false;
+      # Allow reinstallation of Win32
+      ({ pkgs, ... }: lib.mkIf pkgs.stdenv.hostPlatform.isWindows {
+        nonReinstallablePkgs =
+          [
+            "rts"
+            "ghc-heap"
+            "ghc-prim"
+            "integer-gmp"
+            "integer-simple"
+            "base"
+            "deepseq"
+            "array"
+            "ghc-boot-th"
+            "pretty"
+            "template-haskell"
+            # ghcjs custom packages
+            "ghcjs-prim"
+            "ghcjs-th"
+            "ghc"
+            "array"
+            "binary"
+            "bytestring"
+            "containers"
+            "filepath"
+            "ghc-compact"
+            "ghc-prim"
+            # "ghci" "haskeline"
+            "hpc"
+            "mtl"
+            "parsec"
+            "text"
+            "transformers"
+            "xhtml"
+            # "stm" "terminfo"
+          ];
+        packages.Win32.components.library.build-tools = lib.mkForce [ ];
+        # TODO fix nix-tools so this is automatic
+        packages.marlowe.components.tests.marlowe-test.buildable = lib.mkForce false;
+        packages.prettyprinter-configurable.components.tests.prettyprinter-configurable-test.buildable = lib.mkForce false;
+      })
+      ({ pkgs, ... }: lib.mkIf (pkgs.stdenv.hostPlatform != pkgs.stdenv.buildPlatform) {
+        # Remove hsc2hs build-tool dependencies (suitable version will be available as part of the ghc derivation)
+        packages.terminal-size.components.library.build-tools = lib.mkForce [ ];
+        packages.network.components.library.build-tools = lib.mkForce [ ];
+        packages.process.components.library.libs = lib.mkForce [ ];
+        # These need R
+        packages.plutus-core.components.benchmarks.cost-model-test.buildable = lib.mkForce false;
+        packages.plutus-core.components.benchmarks.update-cost-model.buildable = lib.mkForce false;
+      })
+      ({ pkgs, config, ... }: {
         packages = {
           # See https://github.com/input-output-hk/plutus/issues/1213 and
           # https://github.com/input-output-hk/plutus/pull/2865.
@@ -98,8 +184,6 @@ let
           # I can't figure out a way to apply this as a blanket change for all the components in the package, oh well
           plutus-metatheory.components.library.build-tools = [ agdaWithStdlib ];
           plutus-metatheory.components.exes.plc-agda.build-tools = [ agdaWithStdlib ];
-          plutus-metatheory.components.tests.test1.build-tools = [ agdaWithStdlib ];
-          plutus-metatheory.components.tests.test2.build-tools = [ agdaWithStdlib ];
           plutus-metatheory.components.tests.test3.build-tools = [ agdaWithStdlib ];
 
           # Relies on cabal-doctest, just turn it off in the Nix build
@@ -122,6 +206,19 @@ let
             # Seems to be broken on darwin for some reason
             platforms = lib.platforms.linux;
           };
+
+          marlowe-actus.components.exes.marlowe-actus-test-kit = {
+            build-tools = r-packages;
+            # Seems to be broken on darwin for some reason
+            platforms = lib.platforms.linux;
+          };
+
+          # Windows build of libpq is marked as broken
+          fake-pab.components.library.platforms = with lib.platforms; [ linux darwin ];
+          fake-pab.components.exes.fake-pab-server.platforms = with lib.platforms; [ linux darwin ];
+          plutus-playground-server.components.exes.plutus-playground-server.platforms = with lib.platforms; [ linux darwin ];
+          marlowe.components.exes.marlowe-pab.platforms = with lib.platforms; [ linux darwin ];
+          marlowe-playground-server.components.exes.marlowe-playground-server.platforms = with lib.platforms; [ linux darwin ];
 
           # Broken due to warnings, unclear why the setting that fixes this for the build doesn't work here.
           iohk-monitoring.doHaddock = false;
@@ -158,13 +255,30 @@ let
           # See https://github.com/input-output-hk/iohk-nix/pull/488
           cardano-crypto-praos.components.library.pkgconfig = lib.mkForce [ [ libsodium-vrf ] ];
           cardano-crypto-class.components.library.pkgconfig = lib.mkForce [ [ libsodium-vrf ] ];
+
+          # By default haskell.nix chooses the `buildPackages` versions of these `build-tool-depeends`, but
+          # when cross compiling we want the cross compiled version.
+          plutus-pab.components.library.build-tools = lib.mkForce [
+            config.hsPkgs.cardano-node.components.exes.cardano-node
+            config.hsPkgs.cardano-cli.components.exes.cardano-cli
+          ];
+          plutus-metatheory.components.tests.test1.build-tools = lib.mkForce [
+            config.hsPkgs.plutus-core.components.exes.plc
+            config.hsPkgs.plutus-core.components.exes.uplc
+            agdaWithStdlib
+          ];
+          plutus-metatheory.components.tests.test2.build-tools = lib.mkForce [
+            config.hsPkgs.plutus-core.components.exes.plc
+            config.hsPkgs.plutus-core.components.exes.uplc
+            agdaWithStdlib
+          ];
         };
-      }
+      })
     ] ++ lib.optional enableHaskellProfiling {
       enableLibraryProfiling = true;
       enableExecutableProfiling = true;
     };
-  };
+  });
 
 in
 project
